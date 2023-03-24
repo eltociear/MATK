@@ -30,7 +30,7 @@ def main(args):
     # callbacks
     callbacks = []
     chkpt_callback = ModelCheckpoint(
-        dirpath="checkpoints/flava_fhm/",
+        dirpath="checkpoints/flava_Mami/",
         monitor="val_auroc",
         mode="max",
         save_top_k=1,
