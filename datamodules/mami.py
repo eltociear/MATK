@@ -37,7 +37,7 @@ def image_collate_fn(batch, processor):
     label3 = "stereotype"
     if label3 in batch[0].keys():
         labels = [feature[label3] for feature in batch]
-        inputs['misogynous'] = torch.tensor(labels, dtype=torch.int64)
+        inputs['stereotype'] = torch.tensor(labels, dtype=torch.int64)
 
     label4 = "objectification"
     if label4 in batch[0].keys():
@@ -52,9 +52,9 @@ def image_collate_fn(batch, processor):
     return inputs
 
 class MamiDataset(Dataset):
+    
     def __init__(self, annotations_file, img_dir):
         self.img_annotations = pd.read_csv(annotations_file, sep='\t')
-        
         self.img_dir = img_dir
 
     def __len__(self):
@@ -63,7 +63,6 @@ class MamiDataset(Dataset):
     def __getitem__(self, idx):
 
         file_name = self.img_annotations.loc[idx, 'file_name']
-       
         misogynous = self.img_annotations.loc[idx, "misogynous"]
         shaming = self.img_annotations.loc[idx, "shaming"]
         stereotype = self.img_annotations.loc[idx, "stereotype"]
