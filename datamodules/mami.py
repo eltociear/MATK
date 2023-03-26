@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 import pandas as pd
-import pytorch_lightning as pl
+import lightning.pytorch as pl
 
 from torch.utils.data import DataLoader, Dataset
 from PIL import Image
@@ -11,45 +11,74 @@ from torchvision.transforms import ToTensor
 
 from typing import Optional
 from transformers import FlavaProcessor
+from .utils import image_collate_fn_mami
+
+def get_dataset_attributes(dataset_name: str):
+    train_img_dir = "/mnt/sdb/aditi/MAMI/training/TRAINING/"
+    val_img_dir = "/mnt/sdb/aditi/MAMI/trial/Users/fersiniel/Desktop/MAMI - TO LABEL/TRIAL DATASET/"
+    test_img_dir = "/mnt/sdb/aditi/MAMI/test/test/"
 
 
-def image_collate_fn(batch, processor):
-    texts, images = [], []
-    for item in batch:
-        texts.append(item["text"])
-        images.append(item["image"])
-    
-    inputs = processor(  
-        text=texts, images=images, return_tensors="pt", padding=True
-    )
+    if dataset_name == "mami":
+        return MamiDataset, {
+            "train": "/mnt/sdb/aditi/MAMI/training/TRAINING/training.csv",
+            "validate": "/mnt/sdb/aditi/MAMI/trial/Users/fersiniel/Desktop/MAMI - TO LABEL/TRIAL DATASET/trial.csv",
+            "test": "/mnt/sdb/aditi/MAMI/test/test/Test.csv",
+        }, train_img_dir, val_img_dir, test_img_dir
 
-    # Get Labels
-    label1 = "misogynous"
-    if label1 in batch[0].keys():
-        labels = [feature[label1] for feature in batch]
-        inputs['misogynous'] = torch.tensor(labels, dtype=torch.int64)
+class MamiDataModule(pl.LightningDataModule):
+    """
+    DataModule used for semantic segmentation in geometric generalization project
+    """
 
-    label2 = "shaming"
-    if label2 in batch[0].keys():
-        labels = [feature[label2] for feature in batch]
-        inputs["shaming"] = torch.tensor(labels, dtype=torch.int64)
+    def __init__(self, dataset_name, model_class_or_path, batch_size, shuffle_train, **kwargs):
+        super().__init__()
 
-    label3 = "stereotype"
-    if label3 in batch[0].keys():
-        labels = [feature[label3] for feature in batch]
-        inputs['stereotype'] = torch.tensor(labels, dtype=torch.int64)
+        # TODO: Separate this into a separate YAML configuration file
+        self.dataset_class, self.annotations_fp, self.img_dir, self.val_img_dir, self. test_img_dir = get_dataset_attributes(dataset_name)
 
-    label4 = "objectification"
-    if label4 in batch[0].keys():
-        labels = [feature[label4] for feature in batch]
-        inputs['objectification'] = torch.tensor(labels, dtype=torch.int64)
+        self.batch_size = batch_size
+        self.shuffle_train = shuffle_train
 
-    label5 = "violence"
-    if label5 in batch[0].keys():
-        labels = [feature[label5] for feature in batch]
-        inputs['violence'] = torch.tensor(labels, dtype=torch.int64)
+        processor = FlavaProcessor.from_pretrained(model_class_or_path)
+        self.collate_fn = partial(image_collate_fn_mami, processor=processor)
 
-    return inputs
+    def setup(self, stage: Optional[str] = None):
+        if stage == "fit" or stage is None:
+            self.train = self.dataset_class(
+                annotations_file=self.annotations_fp["train"],
+                img_dir=self.img_dir
+            )
+
+            self.validate = self.dataset_class(
+                annotations_file=self.annotations_fp["validate"],
+                img_dir=self.val_img_dir
+            )
+
+        # Assign test dataset for use in dataloader(s)
+        if stage == "test" or stage is None:
+            self.test = self.dataset_class(
+                annotations_file=self.annotations_fp["test"],
+                img_dir=self.test_img_dir
+            )
+
+        if stage == "predict" or stage is None:
+            self.predict = self.dataset_class(
+                annotations_file=self.annotations_fp["predict"],
+                img_dir=self.img_dir
+            )
+
+    def train_dataloader(self):
+        return DataLoader(self.train, batch_size=self.batch_size, num_workers=8, collate_fn=self.collate_fn, shuffle=self.shuffle_train)
+
+    def val_dataloader(self):
+        return DataLoader(self.validate, batch_size=self.batch_size, num_workers=8, collate_fn=self.collate_fn)
+
+    def test_dataloader(self):
+        return DataLoader(self.test, batch_size=self.batch_size, num_workers=8, collate_fn=self.collate_fn)
+
+    def predict_dataloader(self):
+        return DataLoader(self.predict, batch_size=self.batch_size, num_workers=8, collate_fn=self.collate_fn)
 
 class MamiDataset(Dataset):
     

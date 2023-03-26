@@ -2,6 +2,15 @@ import os
 import sys
 import torch
 import numpy as np
+from datamodules.mami import MamiDataset
+from models.flava import FlavaClassificationModel
+
+from typing import Optional
+from transformers import FlavaProcessor
+
+from torch.utils.data import DataLoader
+from functools import partial
+
 import lightning.pytorch as pl
 
 from lightning.pytorch.callbacks import ModelCheckpoint, EarlyStopping
@@ -22,7 +31,6 @@ def main(args):
 
     # Initialize the FlavaForSequenceClassification model
     model = FlavaClassificationModel("facebook/flava-full")
-
     # Initialize the Datasets
     dataset = load_datamodule(args.dataset_name, "facebook/flava-full",
                               batch_size=args.batch_size, shuffle_train=args.shuffle_train)
@@ -30,8 +38,8 @@ def main(args):
     # callbacks
     callbacks = []
     chkpt_callback = ModelCheckpoint(
-        dirpath="checkpoints/flava_Mami/",
-        monitor="val_auroc",
+        dirpath="checkpoints/flava_mami/",
+        monitor="shaming_val_auroc",
         mode="max",
         save_top_k=1,
         every_n_epochs=1,
@@ -41,7 +49,7 @@ def main(args):
 
     if args.early_stopping:
         es_callback = EarlyStopping(
-            monitor="val_auroc",
+            monitor="shaming_val_auroc",
             patience=3,
             mode="max"
         )
@@ -54,7 +62,7 @@ def main(args):
             devices=args.devices,
             max_epochs=args.num_epochs,
             accumulate_grad_batches=args.accumulate_gradients,
-            callbacks=callbacks
+            callbacks=callbacks,
         )
 
         trainer.fit(model, dataset)

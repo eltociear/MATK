@@ -35,12 +35,18 @@ class FlavaClassificationModel(pl.LightningModule):
         self.shaming_val_acc = torchmetrics.Accuracy(task="multiclass", num_classes=shaming_classes)
         self.shaming_val_auroc = torchmetrics.AUROC(task="multiclass", num_classes=shaming_classes)
 
+        self.shaming_test_acc = torchmetrics.Accuracy(task="multiclass", num_classes=shaming_classes)
+        self.shaming_test_auroc = torchmetrics.AUROC(task="multiclass", num_classes=shaming_classes)
+
         #misogynous
         self.misogynous_train_acc = torchmetrics.Accuracy(task="multiclass", num_classes=misogynous_classes)
         self.misogynous_train_auroc = torchmetrics.AUROC(task="multiclass", num_classes=misogynous_classes)
 
         self.misogynous_val_acc = torchmetrics.Accuracy(task="multiclass", num_classes=misogynous_classes)
         self.misogynous_val_auroc = torchmetrics.AUROC(task="multiclass", num_classes=misogynous_classes)
+
+        self.misogynous_test_acc = torchmetrics.Accuracy(task="multiclass", num_classes=misogynous_classes)
+        self.misogynous_test_auroc = torchmetrics.AUROC(task="multiclass", num_classes=misogynous_classes)
 
         #stereotype
         self.stereotype_train_acc = torchmetrics.Accuracy(task="multiclass", num_classes=stereotype_classes)
@@ -49,12 +55,18 @@ class FlavaClassificationModel(pl.LightningModule):
         self.stereotype_val_acc = torchmetrics.Accuracy(task="multiclass", num_classes=stereotype_classes)
         self.stereotype_val_auroc = torchmetrics.AUROC(task="multiclass", num_classes=stereotype_classes)
 
+        self.stereotype_test_acc = torchmetrics.Accuracy(task="multiclass", num_classes=stereotype_classes)
+        self.stereotype_test_auroc = torchmetrics.AUROC(task="multiclass", num_classes=stereotype_classes)
+
         #objectification
         self.objectification_train_acc = torchmetrics.Accuracy(task="multiclass", num_classes=objectification_classes)
         self.objectification_train_auroc = torchmetrics.AUROC(task="multiclass", num_classes=objectification_classes)
 
         self.objectification_val_acc = torchmetrics.Accuracy(task="multiclass", num_classes=objectification_classes)
         self.objectification_val_auroc = torchmetrics.AUROC(task="multiclass", num_classes=objectification_classes)
+
+        self.stereotype_test_acc = torchmetrics.Accuracy(task="multiclass", num_classes=stereotype_classes)
+        self.stereotype_test_auroc = torchmetrics.AUROC(task="multiclass", num_classes=stereotype_classes)
 
         #violence
         self.violence_train_acc = torchmetrics.Accuracy(task="multiclass", num_classes=violence_classes)
@@ -63,12 +75,8 @@ class FlavaClassificationModel(pl.LightningModule):
         self.violence_val_acc = torchmetrics.Accuracy(task="multiclass", num_classes=violence_classes)
         self.violence_val_auroc = torchmetrics.AUROC(task="multiclass", num_classes=violence_classes)
 
-
-        self.val_acc = torchmetrics.Accuracy(task="multiclass", num_classes=num_classes)
-        self.val_auroc = torchmetrics.AUROC(task="multiclass", num_classes=num_classes)
-
-        self.test_acc = torchmetrics.Accuracy(task="multiclass", num_classes=num_classes)
-        self.test_auroc = torchmetrics.AUROC(task="multiclass", num_classes=num_classes)
+        self.stereotype_test_acc = torchmetrics.Accuracy(task="multiclass", num_classes=stereotype_classes)
+        self.stereotype_test_auroc = torchmetrics.AUROC(task="multiclass", num_classes=stereotype_classes)
     
     def training_step(self, batch, batch_idx):
         shaming_labels = batch['shaming']
@@ -89,7 +97,7 @@ class FlavaClassificationModel(pl.LightningModule):
 
         misogynous_labels = batch['misogynous']
 
-        misogynous_preds = self.mlp(model_outputs.multimodal_embeddings[:, 0])
+        misogynous_preds = self.mlp2(model_outputs.multimodal_embeddings[:, 0])
         misogynous_loss = F.cross_entropy(misogynous_preds, misogynous_labels)
         
         self.misogynous_train_acc(misogynous_preds.argmax(dim=-1), misogynous_labels)
@@ -100,7 +108,7 @@ class FlavaClassificationModel(pl.LightningModule):
 
         stereotype_labels = batch['stereotype']
 
-        stereotype_preds = self.mlp(model_outputs.multimodal_embeddings[:, 0])
+        stereotype_preds = self.mlp3(model_outputs.multimodal_embeddings[:, 0])
         stereotype_loss = F.cross_entropy(stereotype_preds, stereotype_labels)
         
         self.stereotype_train_acc(stereotype_preds.argmax(dim=-1), stereotype_labels)
@@ -111,7 +119,7 @@ class FlavaClassificationModel(pl.LightningModule):
 
         objectification_labels = batch['objectification']
 
-        objectification_preds = self.mlp(model_outputs.multimodal_embeddings[:, 0])
+        objectification_preds = self.mlp4(model_outputs.multimodal_embeddings[:, 0])
         objectification_loss = F.cross_entropy(objectification_preds, objectification_labels)
         
         self.objectification_train_acc(objectification_preds.argmax(dim=-1), objectification_labels)
@@ -122,7 +130,7 @@ class FlavaClassificationModel(pl.LightningModule):
 
         violence_labels = batch['violence']
 
-        violence_preds = self.mlp(model_outputs.multimodal_embeddings[:, 0])
+        violence_preds = self.mlp5(model_outputs.multimodal_embeddings[:, 0])
         violence_loss = F.cross_entropy(violence_preds, violence_labels)
         
         self.violence_train_acc(violence_preds.argmax(dim=-1), violence_labels)
@@ -154,7 +162,7 @@ class FlavaClassificationModel(pl.LightningModule):
 
         misogynous_labels = batch['misogynous']
 
-        misogynous_preds = self.mlp(model_outputs.multimodal_embeddings[:, 0])
+        misogynous_preds = self.mlp2(model_outputs.multimodal_embeddings[:, 0])
         misogynous_loss = F.cross_entropy(misogynous_preds, misogynous_labels)
         
         self.misogynous_val_acc(misogynous_preds.argmax(dim=-1), misogynous_labels)
@@ -165,7 +173,7 @@ class FlavaClassificationModel(pl.LightningModule):
 
         stereotype_labels = batch['stereotype']
 
-        stereotype_preds = self.mlp(model_outputs.multimodal_embeddings[:, 0])
+        stereotype_preds = self.mlp3(model_outputs.multimodal_embeddings[:, 0])
         stereotype_loss = F.cross_entropy(stereotype_preds, stereotype_labels)
         
         self.stereotype_val_acc(stereotype_preds.argmax(dim=-1), stereotype_labels)
@@ -176,7 +184,7 @@ class FlavaClassificationModel(pl.LightningModule):
 
         objectification_labels = batch['objectification']
 
-        objectification_preds = self.mlp(model_outputs.multimodal_embeddings[:, 0])
+        objectification_preds = self.mlp4(model_outputs.multimodal_embeddings[:, 0])
         objectification_loss = F.cross_entropy(objectification_preds, objectification_labels)
         
         self.objectification_val_acc(objectification_preds.argmax(dim=-1), objectification_labels)
@@ -187,7 +195,7 @@ class FlavaClassificationModel(pl.LightningModule):
 
         violence_labels = batch['violence']
 
-        violence_preds = self.mlp(model_outputs.multimodal_embeddings[:, 0])
+        violence_preds = self.mlp5(model_outputs.multimodal_embeddings[:, 0])
         violence_loss = F.cross_entropy(violence_preds, violence_labels)
         
         self.violence_val_acc(violence_preds.argmax(dim=-1), violence_labels)
@@ -200,32 +208,76 @@ class FlavaClassificationModel(pl.LightningModule):
         return loss
     
     def test_step(self, batch, batch_idx):
-        labels = batch["labels"]
-        
+
+        shaming_labels = batch['shaming']
+        misogynous_labels = batch['misogynous']
+        stereotype_labels = batch['stereotype']
+        objectification_labels = batch['objectification']
+        violence_labels = batch['violence']
+
         model_outputs = self.model(
             input_ids=batch["input_ids"],
             attention_mask=batch["attention_mask"],
             pixel_values=batch['pixel_values']
         )
-        preds = self.mlp(model_outputs.multimodal_embeddings[:, 0])
+        shaming_preds = self.mlp(model_outputs.multimodal_embeddings[:, 0])
+        misogynous_preds = self.mlp2(model_outputs.multimodal_embeddings[:, 0])
+        stereotype_preds = self.mlp3(model_outputs.multimodal_embeddings[:, 0])
+        objectification_preds = self.mlp4(model_outputs.multimodal_embeddings[:, 0])
+        violence_preds = self.mlp5(model_outputs.multimodal_embeddings[:, 0])
         
-        self.test_acc(preds.argmax(dim=-1), labels)
-        self.test_auroc(preds, labels)
+        self.shaming_test_acc(shaming_preds.argmax(dim=-1), shaming_labels)
+        self.shaming_test_auroc(shaming_preds, shaming_labels)
+        self.misogynous_test_acc(misogynous_preds.argmax(dim=-1), misogynous_labels)
+        self.misogynous_test_auroc(misogynous_preds, misogynous_labels)
+        self.stereotype_test_acc(stereotype_preds.argmax(dim=-1), stereotype_labels)
+        self.stereotype_test_auroc(stereotype_preds, stereotype_labels)
+        self.objectification_test_acc(objectification_preds.argmax(dim=-1), objectification_labels)
+        self.objectification_test_auroc(objectification_preds, objectification_labels)
+        self.violence_test_acc(preds.argmax(dim=-1), violence_labels)
+        self.violence_test_auroc(preds, violence_labels)
 
         return None
 
     def on_test_epoch_end(self):
-        print("test_acc:", self.test_acc.compute())
-        print("test_auroc:", self.test_auroc.compute())
+
+        print("shaming_test_acc:", self.shaming_test_acc.compute())
+        print("shaming_test_auroc:", self.shaming_test_auroc.compute())
+        print("misogynous_test_acc:", self.misogynous_test_acc.compute())
+        print("misogynous_test_auroc:", self.misogynous_test_auroc.compute())
+        print("stereotype_test_acc:", self.stereotype_test_acc.compute())
+        print("stereotype_test_auroc:", self.stereotype_test_auroc.compute())
+        print("objectification_test_acc:", self.objectification_test_acc.compute())
+        print("objectification_test_auroc:", self.objectification_test_auroc.compute())
+        print("objectification_test_acc:", self.objectification_test_acc.compute())
+        print("objectification_test_auroc:", self.objectification_test_auroc.compute())
+        
 
     def predict_step(self, batch, batch_idx):
+        shaming_labels = batch['shaming']
+        misogynous_labels = batch['misogynous']
+        stereotype_labels = batch['stereotype']
+        objectification_labels = batch['objectification']
+        violence_labels = batch['violence']
+
         model_outputs = self.model(
             input_ids=batch["input_ids"],
             attention_mask=batch["attention_mask"],
             pixel_values=batch['pixel_values']
         )
-        preds = self.mlp(model_outputs.multimodal_embeddings[:, 0])
-        results = {"preds": preds}
+        shaming_preds = self.mlp(model_outputs.multimodal_embeddings[:, 0])
+        misogynous_preds = self.mlp2(model_outputs.multimodal_embeddings[:, 0])
+        stereotype_preds = self.mlp3(model_outputs.multimodal_embeddings[:, 0])
+        objectification_preds = self.mlp4(model_outputs.multimodal_embeddings[:, 0])
+        violence_preds = self.mlp5(model_outputs.multimodal_embeddings[:, 0])
+
+        results = {
+            "shaming_preds": shaming_preds,
+            "misogynous_preds": misogynous_preds,
+            "stereotype_preds": stereotype_preds,
+            "objectification_preds": objectification_preds,
+            "violence_preds": violence_preds,
+        }
 
         if "labels" in batch:
             results['labels'] = batch["labels"]
