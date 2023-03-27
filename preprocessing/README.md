@@ -1,5 +1,5 @@
 # Inpainting.py
-This Python file takes as input 2 paths: ```img_dir``` as path to source image directory and ```cleaned_dir``` as path to empty destination directory. It will use ```keras_ocr``` to detect text, ```numpy``` for masking, and ```opencv``` for inpainting. Inpainted images will be saved in ```img_dir```. ```multiprocessing``` is used to inpaint many images in parallel thus saves computing time.
+This Python file takes as input 2 paths: ```img_dir``` as path to source image directory and ```cleaned_dir``` as path to empty destination directory. It will use __keras_ocr__ to detect text, __numpy__ for masking, and __opencv__ for inpainting. Inpainted images will be saved in ```img_dir```. __multiprocessing__ is used to inpaint many images in parallel thus saves computing time.
 ## Installation
 Run the following commands in terminal:
 ### Create a Tensorflow Docker Container

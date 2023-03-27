@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import keras_ocr
 import cv2
 import math
