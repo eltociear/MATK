@@ -6,7 +6,7 @@ import lightning.pytorch as pl
 from PIL import Image
 from typing import Optional
 from functools import partial
-from transformers import FlavaProcessor
+from transformers import AutoTokenizer
 from torch.utils.data import DataLoader, Dataset
 
 # from datamodules.utils import image_collate_fn
@@ -44,7 +44,7 @@ class FHMDataModule(pl.LightningDataModule):
         self.batch_size = batch_size
         self.shuffle_train = shuffle_train
 
-        processor = FlavaProcessor.from_pretrained(model_class_or_path)
+        processor = AutoTokenizer.from_pretrained(model_class_or_path)
         self.collate_fn = partial(image_collate_fn, processor=processor)
 
     def setup(self, stage: Optional[str] = None):

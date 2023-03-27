@@ -12,7 +12,7 @@ from utils.args import (
     add_test_args
 )
 
-from models.flava import FlavaClassificationModel
+from models.vlt5 import FlavaClassificationModel
 from datamodules import load_datamodule
 
 
@@ -21,10 +21,10 @@ def main(args):
     pl.seed_everything(args.seed, workers=True)
 
     # Initialize the FlavaForSequenceClassification model
-    model = FlavaClassificationModel("facebook/flava-full")
+    model = FlavaClassificationModel("unc-nlp/lxmert-base-uncased")
 
     # Initialize the Datasets
-    dataset = load_datamodule(args.dataset_name, "facebook/flava-full",
+    dataset = load_datamodule(args.dataset_name, "unc-nlp/lxmert-base-uncased",
                               batch_size=args.batch_size, shuffle_train=args.shuffle_train)
 
     # callbacks
@@ -54,7 +54,8 @@ def main(args):
             devices=args.devices,
             max_epochs=args.num_epochs,
             accumulate_grad_batches=args.accumulate_gradients,
-            callbacks=callbacks
+            callbacks=callbacks,
+            limit_train_batches = 10
         )
 
         trainer.fit(model, dataset)
