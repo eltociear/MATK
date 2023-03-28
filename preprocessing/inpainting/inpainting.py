@@ -61,7 +61,8 @@ def process_image(image_path, cleaned_dir):
 
 def process_images(img_dir, cleaned_dir):
     # Get a list of image paths to process
-    image_paths = [os.path.join(img_dir, image) for image in os.listdir(img_dir) if image.endswith(('.png','.jpg','.jpeg'))]
+    image_type = ('.png','.jpg','.jpeg', '.bmp', '.jpe', '.PNG', '.JPG', '.JPEG', '.JPE', '.BMP')
+    image_paths = [os.path.join(img_dir, image) for image in os.listdir(img_dir) if image.endswith(image_type)]
     # Create a multiprocessing pool
     pool = multiprocessing.Pool() #number of processes = multiprocessing.cpu_count()
 
