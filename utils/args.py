@@ -12,7 +12,7 @@ def add_train_args(parser: ArgumentParser):
     parser.add_argument("--do_train", action='store_true')
     parser.add_argument("--shuffle_train", action='store_true')
     parser.add_argument("--num_epochs", type=int, default=50)
-    parser.add_argument("--batch_size", type=int, default=32)
+    parser.add_argument("--batch_size", type=int, default=1)
     parser.add_argument("--accumulate_gradients", type=int, default=1)
 
     parser.add_argument("--early_stopping", action='store_true')

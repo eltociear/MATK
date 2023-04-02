@@ -12,7 +12,7 @@ from utils.args import (
     add_test_args
 )
 
-from models.vlt5 import FlavaClassificationModel
+from models.vlt5 import VLT5ClassificationModel
 from datamodules import load_datamodule
 
 
@@ -20,17 +20,17 @@ def main(args):
     # Reproducibility
     pl.seed_everything(args.seed, workers=True)
 
-    # Initialize the FlavaForSequenceClassification model
-    model = FlavaClassificationModel("unc-nlp/lxmert-base-uncased")
+    # Initialize the VLT5ClassificationModel model
+    model = VLT5ClassificationModel("t5-base") 
 
     # Initialize the Datasets
-    dataset = load_datamodule(args.dataset_name, "unc-nlp/lxmert-base-uncased",
+    dataset = load_datamodule(args.dataset_name, "t5-base", 
                               batch_size=args.batch_size, shuffle_train=args.shuffle_train)
 
     # callbacks
     callbacks = []
     chkpt_callback = ModelCheckpoint(
-        dirpath="checkpoints/flava_fhm/",
+        dirpath="checkpoints/vlt5_fhm/",
         monitor="val_auroc",
         mode="max",
         save_top_k=1,
@@ -62,7 +62,7 @@ def main(args):
 
     if args.do_test:
         chkpt_filepath = args.saved_model_filepath if args.saved_model_filepath else chkpt_callback.best_model_path
-        model = FlavaClassificationModel.load_from_checkpoint(chkpt_filepath)
+        model = VLT5ClassificationModel.load_from_checkpoint(chkpt_filepath)
         print(f"Loaded model checkpoint: {chkpt_filepath}")
 
         trainer = pl.Trainer(
@@ -77,7 +77,7 @@ def main(args):
     if args.do_predict:
 
         chkpt_filepath = args.saved_model_filepath if args.saved_model_filepath else chkpt_callback.best_model_path
-        model = FlavaClassificationModel.load_from_checkpoint(chkpt_filepath)
+        model = VLT5ClassificationModel.load_from_checkpoint(chkpt_filepath)
         print(f"Loaded model checkpoint: {chkpt_filepath}")
 
         trainer = pl.Trainer(

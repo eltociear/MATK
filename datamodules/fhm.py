@@ -9,18 +9,24 @@ from functools import partial
 from transformers import AutoTokenizer
 from torch.utils.data import DataLoader, Dataset
 
-# from datamodules.utils import image_collate_fn
 from .utils import image_collate_fn
+from .utils import image_collate_fn_vlt5
+
+from .gqa_lxmert.modeling_frcnn import GeneralizedRCNN
+from .gqa_lxmert.lxmert_utils import Config
+from .gqa_lxmert.processing_image import Preprocess
+
+from .VL_T5_main.VL_T5.src.tokenization import VLT5TokenizerFast
 
 def get_dataset_attributes(dataset_name: str):
-    img_dir = "/mnt/sda/datasets/mmf/datasets/hateful_memes/defaults/images/img/"
+    img_dir = "/mnt/sdb/aditi/hateful_memes/hateful_memes/"
 
     if dataset_name == "fhm":
         return FHMDataset, {
-            "train": "/mnt/sda/datasets/mmf/datasets/hateful_memes/defaults/annotations/train.jsonl",
-            "validate": "/mnt/sda/datasets/mmf/datasets/hateful_memes/defaults/annotations/dev_seen.jsonl",
-            "test": "/mnt/sda/datasets/mmf/datasets/hateful_memes/defaults/annotations/dev_seen.jsonl",
-            "predict": "/mnt/sda/datasets/mmf/datasets/hateful_memes/defaults/annotations/dev_seen.jsonl",
+            "train": "/mnt/sdb/aditi/hateful_memes/hateful_memes/train.jsonl",
+            "validate": "/mnt/sdb/aditi/hateful_memes/hateful_memes/dev_seen.jsonl",
+            "test": "/mnt/sdb/aditi/hateful_memes/hateful_memes/dev_seen.jsonl",
+            "predict": "/mnt/sdb/aditi/hateful_memes/hateful_memes/dev_seen.jsonl",
         }, img_dir
     elif dataset_name == "fhm_finegrained":
         return FHMFinegrainedDataset, {
@@ -29,6 +35,7 @@ def get_dataset_attributes(dataset_name: str):
             "test": "/mnt/sda/datasets/mmf/datasets/hateful_memes/defaults/annotations/fine_grained/dev_seen.jsonl",
             "predict": "/mnt/sda/datasets/mmf/datasets/hateful_memes/defaults/annotations/fine_grained/dev_seen.jsonl",
         }, img_dir
+
 
 class FHMDataModule(pl.LightningDataModule):
     """
@@ -44,8 +51,17 @@ class FHMDataModule(pl.LightningDataModule):
         self.batch_size = batch_size
         self.shuffle_train = shuffle_train
 
-        processor = AutoTokenizer.from_pretrained(model_class_or_path)
-        self.collate_fn = partial(image_collate_fn, processor=processor)
+        processor = VLT5TokenizerFast.from_pretrained(model_class_or_path)
+
+        image_processor = {}
+        frcnn_cfg = Config.from_pretrained("unc-nlp/frcnn-vg-finetuned")
+        frcnn = GeneralizedRCNN.from_pretrained("unc-nlp/frcnn-vg-finetuned", config=frcnn_cfg)
+        image_preprocess = Preprocess(frcnn_cfg)
+
+        image_processor['frcnn_cfg'] = frcnn_cfg
+        image_processor['frcnn'] = frcnn
+        image_processor['image_preprocess'] = image_preprocess
+        self.collate_fn = partial(image_collate_fn_vlt5, processor=processor, image_processor=image_processor)
 
     def setup(self, stage: Optional[str] = None):
         if stage == "fit" or stage is None:
@@ -101,13 +117,14 @@ class FHMDataset(Dataset):
         img = Image.open(img_path)
         img = img.resize((224, 224))
         img = img.convert("RGB") if img.mode != "RGB" else img
-
         return {
             'id': img_id,
             'text': text, 
             'image': np.array(img),
-            'label': label
+            'label': label,
+            'img_path': img_path
         }
+
 
 class FHMFinegrainedDataset(Dataset):
     def __init__(self, annotations_file, img_dir):
