@@ -3,34 +3,29 @@ import numpy as np
 import pandas as pd
 import lightning.pytorch as pl
 
-from PIL import Image
-from typing import Optional
-from functools import partial
-from transformers import FlavaProcessor
 from torch.utils.data import DataLoader, Dataset
+from torch.nn.utils.rnn import pad_sequence
+from PIL import Image
 
-# from datamodules.utils import image_collate_fn
-from .utils import image_collate_fn
+from functools import partial
+from torchvision.transforms import ToTensor
+
+from typing import Optional
+from transformers import FlavaProcessor
+
+from .utils import image_collate_fn_harmeme
 
 def get_dataset_attributes(dataset_name: str):
-    img_dir = "/mnt/sdb/aditi/hateful_memes/hateful_memes/"
+    img_dir = "/mnt/sdb/aditi/mmf/data/datasets/memes/defaults/images/"
 
-    if dataset_name == "fhm":
-        return FHMDataset, {
-            "train": "/mnt/sdb/aditi/hateful_memes/hateful_memes/train.jsonl",
-            "validate": "/mnt/sdb/aditi/hateful_memes/hateful_memes/dev_seen.jsonl",
-            "test": "/mnt/sdb/aditi/hateful_memes/hateful_memes/dev_seen.jsonl",
-            "predict": "/mnt/sdb/aditi/hateful_memes/hateful_memes/dev_seen.jsonl",
+    if dataset_name == "harmeme":
+        return HarMemeDataset, {
+            "train": "/mnt/sdb/aditi/mmf/data/datasets/memes/defaults/annotations/train.jsonl",
+            "validate": "/mnt/sdb/aditi/mmf/data/datasets/memes/defaults/annotations/val.jsonl",
+            "test": "/mnt/sdb/aditi/mmf/data/datasets/memes/defaults/annotations/test.jsonl"
         }, img_dir
-    elif dataset_name == "fhm_finegrained":
-        return FHMFinegrainedDataset, {
-            "train": "/mnt/sda/datasets/mmf/datasets/hateful_memes/defaults/annotations/fine_grained/train.jsonl",
-            "validate": "/mnt/sda/datasets/mmf/datasets/hateful_memes/defaults/annotations/fine_grained/dev_seen.jsonl",
-            "test": "/mnt/sda/datasets/mmf/datasets/hateful_memes/defaults/annotations/fine_grained/dev_seen.jsonl",
-            "predict": "/mnt/sda/datasets/mmf/datasets/hateful_memes/defaults/annotations/fine_grained/dev_seen.jsonl",
-        }, img_dir
-
-class FHMDataModule(pl.LightningDataModule):
+   
+class HarMemeDataModule(pl.LightningDataModule):
     """
     DataModule used for semantic segmentation in geometric generalization project
     """
@@ -45,7 +40,8 @@ class FHMDataModule(pl.LightningDataModule):
         self.shuffle_train = shuffle_train
 
         processor = FlavaProcessor.from_pretrained(model_class_or_path)
-        self.collate_fn = partial(image_collate_fn, processor=processor)
+        self.collate_fn = partial(image_collate_fn_harmeme, processor=processor)
+
 
     def setup(self, stage: Optional[str] = None):
         if stage == "fit" or stage is None:
@@ -84,7 +80,9 @@ class FHMDataModule(pl.LightningDataModule):
     def predict_dataloader(self):
         return DataLoader(self.predict, batch_size=self.batch_size, num_workers=8, collate_fn=self.collate_fn)
 
-class FHMDataset(Dataset):
+
+class HarMemeDataset(Dataset):
+
     def __init__(self, annotations_file, img_dir):
         self.img_annotations = pd.read_json(annotations_file, lines=True)
         self.img_dir = img_dir
@@ -93,47 +91,18 @@ class FHMDataset(Dataset):
         return len(self.img_annotations)
 
     def __getitem__(self, idx):
-        img_id = self.img_annotations.loc[idx, 'img']
+        img_id = self.img_annotations.loc[idx, 'id']
+        image = self.img_annotations.loc[idx, 'image']
         text = self.img_annotations.loc[idx, 'text']
-        label = self.img_annotations.loc[idx, 'label']
-        img_path = self.img_dir + img_id
+        labels = self.img_annotations.loc[idx, 'labels']
+        img_path = self.img_dir + image
         
         img = Image.open(img_path)
         img = img.resize((224, 224))
         img = img.convert("RGB") if img.mode != "RGB" else img
-
         return {
             'id': img_id,
             'text': text, 
             'image': np.array(img),
-            'label': label
-        }
-
-class FHMFinegrainedDataset(Dataset):
-    def __init__(self, annotations_file, img_dir):
-        self.img_annotations = pd.read_json(annotations_file, lines=True)
-        self.img_dir = img_dir
-
-    def __len__(self):
-        return len(self.img_annotations)
-
-    def __getitem__(self, idx):
-        return self.get_hateful_classification(idx)
-
-    def get_hateful_classification(self, idx):
-        id = self.img_annotations.loc[idx, 'id']
-        img_id = self.img_annotations.loc[idx, 'img']
-        text = self.img_annotations.loc[idx, 'text']
-        label = 1 if self.img_annotations.loc[idx, 'gold_hate'] == ["hateful"] else 0
-        img_path = self.img_dir + img_id
-
-        img = Image.open(img_path)
-        img = img.resize((224, 224))
-        img = img.convert("RGB") if img.mode != "RGB" else img
-
-        return {
-            'id': img_id,
-            'text': text,
-            'image': np.array(img),
-            'label': label
+            'labels': labels
         }

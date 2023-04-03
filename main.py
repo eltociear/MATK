@@ -22,6 +22,7 @@ from utils.args import (
 )
 
 from models.flava import FlavaClassificationModel
+from models.flava import MetricCallback
 from datamodules import load_datamodule
 
 
@@ -30,7 +31,28 @@ def main(args):
     pl.seed_everything(args.seed, workers=True)
 
     # Initialize the FlavaForSequenceClassification model
-    model = FlavaClassificationModel("facebook/flava-full")
+    
+    if args.dataset_name == 'mami':
+        output_dict = {
+            "shaming": 2,
+            "misogynous": 2,
+            "stereotype": 2,
+            "objectification" :2,
+            "violence": 2
+        }
+
+    elif args.dataset_name == 'fhm':
+        output_dict = {
+            "labels": 2
+        }
+
+    elif args.dataset_name == 'harmeme':
+        output_dict = {
+            "intensity": 3,
+            "target": 4
+        }
+        
+    model = FlavaClassificationModel("facebook/flava-full", output_dict)
     # Initialize the Datasets
     dataset = load_datamodule(args.dataset_name, "facebook/flava-full",
                               batch_size=args.batch_size, shuffle_train=args.shuffle_train)
@@ -46,6 +68,9 @@ def main(args):
         save_last=True,
     )
     callbacks.append(chkpt_callback)
+
+    metric_callback = MetricCallback(output_dict)
+    callbacks.append(metric_callback)
 
     if args.early_stopping:
         es_callback = EarlyStopping(
@@ -63,6 +88,7 @@ def main(args):
             max_epochs=args.num_epochs,
             accumulate_grad_batches=args.accumulate_gradients,
             callbacks=callbacks,
+            limit_train_batches = 2,
         )
 
         trainer.fit(model, dataset)

@@ -1,4 +1,6 @@
 import torch
+import lightning.pytorch as pl
+import torchmetrics
 
 def image_collate_fn(batch, processor):
     texts, images = [], []
@@ -55,3 +57,72 @@ def image_collate_fn_mami(batch, processor):
         inputs['violence'] = torch.tensor(labels, dtype=torch.int64)
 
     return inputs
+
+def image_collate_fn_harmeme(batch, processor):
+    texts, images = [], []
+    for item in batch:
+        texts.append(item["text"])
+        images.append(item["image"])
+    
+    inputs = processor(  
+        text=texts, images=images, return_tensors="pt", padding=True
+    )
+
+    # Get Labels
+    label_name = "labels"
+
+    intensity_map = {'not harmful': 0, 'somewhat harmful': 1, 'very harmful': 2}
+    target_map = {'individual': 0, 'organization': 1, 'community': 2 , 'society': 3}
+
+    intensity_labels = []
+    target_labels = []
+
+    if label_name in batch[0].keys():
+        labels = [feature[label_name] for feature in batch] # [['somewhat harmful', 'community'], ['not harmful']]
+        mapped_labels = []
+        for one_dim_list in labels:
+            for i in range(len(one_dim_list)):
+                curr_label = one_dim_list[i]
+                
+                if curr_label in intensity_map:
+                    one_dim_list[i] = intensity_map[curr_label]
+                else:
+                    one_dim_list[i] = target_map[curr_label]
+            
+            mapped_labels.append(one_dim_list)
+        
+        for l in mapped_labels:
+            if len(l) == 2:
+                intensity_labels.append(l[0])
+                target_labels.append(l[1])
+            else:
+                intensity_labels.append(l[0])
+                target_labels.append(0)
+        
+        intensity_tensor = torch.tensor(intensity_labels, dtype=torch.int64)
+        target_tensor = torch.tensor(target_labels, dtype=torch.int64)
+
+        inputs['intensity'] = intensity_tensor
+        inputs['target'] = target_tensor
+        
+    return inputs
+
+class MetricCallback(pl.Callback):
+    def __init__(self, metric_dict):
+        super().__init__()
+        self.metric_dict = metric_dict
+        
+    def on_train_start(self, trainer, pl_module):
+        for key, value in self.metric_dict.items():
+            setattr(pl_module, f"{key}_train_acc", torchmetrics.Accuracy(task="multiclass", num_classes=value))
+            setattr(pl_module, f"{key}_train_auroc", torchmetrics.AUROC(task="multiclass", num_classes=value))
+            
+    def on_validation_start(self, trainer, pl_module):
+        for key, value in self.metric_dict.items():
+            setattr(pl_module, f"{key}_val_acc", torchmetrics.Accuracy(task="multiclass", num_classes=value))
+            setattr(pl_module, f"{key}_val_auroc", torchmetrics.AUROC(task="multiclass", num_classes=value))
+            
+    def on_test_start(self, trainer, pl_module):
+        for key, value in self.metric_dict.items():
+            setattr(pl_module, f"{key}_test_acc", torchmetrics.Accuracy(task="multiclass", num_classes=value))
+            setattr(pl_module, f"{key}_test_auroc", torchmetrics.AUROC(task="multiclass", num_classes=value))
