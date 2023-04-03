@@ -2,29 +2,28 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import lightning.pytorch as pl
+from lightning.pytorch.callbacks import Callback
 import torchmetrics
-
 
 from transformers import FlavaModel
 
-class MetricCallback(pl.Callback):
-    def __init__(self, metric_dict):
+class MetricCallback(Callback):
+    def __init__(self, output_dict):
         super().__init__()
-        self.metric_dict = metric_dict
+        self.output_dict = output_dict
         
     def on_train_start(self, trainer, pl_module):
-        for key, value in self.metric_dict.items():
-            print(pl_module)
+        for key, value in self.output_dict.items():
             setattr(pl_module, f"{key}_train_acc", torchmetrics.Accuracy(task="multiclass", num_classes=value).to('cuda'))
             setattr(pl_module, f"{key}_train_auroc", torchmetrics.AUROC(task="multiclass", num_classes=value).to('cuda'))
             
     def on_validation_start(self, trainer, pl_module):
-        for key, value in self.metric_dict.items():
+        for key, value in self.output_dict.items():
             setattr(pl_module, f"{key}_val_acc", torchmetrics.Accuracy(task="multiclass", num_classes=value).to('cuda'))
             setattr(pl_module, f"{key}_val_auroc", torchmetrics.AUROC(task="multiclass", num_classes=value).to('cuda'))
             
     def on_test_start(self, trainer, pl_module):
-        for key, value in self.metric_dict.items():
+        for key, value in self.output_dict.items():
             setattr(pl_module, f"{key}_test_acc", torchmetrics.Accuracy(task="multiclass", num_classes=value).to('cuda'))
             setattr(pl_module, f"{key}_test_auroc", torchmetrics.AUROC(task="multiclass", num_classes=value).to('cuda'))
 
@@ -40,6 +39,8 @@ class FlavaClassificationModel(pl.LightningModule):
         
         # set up metric
         self.metric_dict = output_dict
+
+        self.metric_callback = MetricCallback(self.metric_dict)
        
 
     def compute_metrics_and_logs(self, preds, labels, loss, prefix, step):
@@ -73,7 +74,7 @@ class FlavaClassificationModel(pl.LightningModule):
             label_preds = self.mlps[i](model_outputs.multimodal_embeddings[:, 0])
             label_loss = F.cross_entropy(label_preds, label_targets)
             loss += label_loss
-            self.compute_metrics_and_logs(label_preds, label_targets, label_loss,label_list[i] , 'train')
+            # self.compute_metrics_and_logs(label_preds, label_targets, label_loss,label_list[i] , 'train')
         
         return loss
     
@@ -97,7 +98,7 @@ class FlavaClassificationModel(pl.LightningModule):
             label_preds = self.mlps[i](model_outputs.multimodal_embeddings[:, 0])
             label_loss = F.cross_entropy(label_preds, label_targets)
             loss += label_loss
-            self.compute_metrics_and_logs(label_preds, label_targets, label_loss,label_list[i] , 'val')
+            # self.compute_metrics_and_logs(label_preds, label_targets, label_loss,label_list[i] , 'val')
         
         return loss
 
@@ -122,7 +123,7 @@ class FlavaClassificationModel(pl.LightningModule):
             label_preds = self.mlps[i](model_outputs.multimodal_embeddings[:, 0])
             label_loss = F.cross_entropy(label_preds, label_targets)
             loss += label_loss
-            self.compute_metrics_and_logs(label_preds, label_targets, label_loss,label_list[i] , 'test')
+            # self.compute_metrics_and_logs(label_preds, label_targets, label_loss,label_list[i] , 'test')
 
         return None
 

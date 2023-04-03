@@ -106,23 +106,3 @@ def image_collate_fn_harmeme(batch, processor):
         inputs['target'] = target_tensor
         
     return inputs
-
-class MetricCallback(pl.Callback):
-    def __init__(self, metric_dict):
-        super().__init__()
-        self.metric_dict = metric_dict
-        
-    def on_train_start(self, trainer, pl_module):
-        for key, value in self.metric_dict.items():
-            setattr(pl_module, f"{key}_train_acc", torchmetrics.Accuracy(task="multiclass", num_classes=value))
-            setattr(pl_module, f"{key}_train_auroc", torchmetrics.AUROC(task="multiclass", num_classes=value))
-            
-    def on_validation_start(self, trainer, pl_module):
-        for key, value in self.metric_dict.items():
-            setattr(pl_module, f"{key}_val_acc", torchmetrics.Accuracy(task="multiclass", num_classes=value))
-            setattr(pl_module, f"{key}_val_auroc", torchmetrics.AUROC(task="multiclass", num_classes=value))
-            
-    def on_test_start(self, trainer, pl_module):
-        for key, value in self.metric_dict.items():
-            setattr(pl_module, f"{key}_test_acc", torchmetrics.Accuracy(task="multiclass", num_classes=value))
-            setattr(pl_module, f"{key}_test_auroc", torchmetrics.AUROC(task="multiclass", num_classes=value))
