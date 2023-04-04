@@ -22,13 +22,11 @@ def create_config():
     args.gpu = 0 # assign GPU 
     # create config file 
     
-    print("args")
-    print(args)
     config_class = T5Config 
     config = config_class.from_pretrained('t5-base')
     config.feat_dim = args.feat_dim
     config.pos_dim = args.pos_dim
-    config.n_images = 2
+    config.n_images = 1
 
     config.use_vis_order_embedding = args.use_vis_order_embedding
 
@@ -46,6 +44,7 @@ def create_config():
     return config
         
 class VLT5ClassificationModel(pl.LightningModule):
+
     def __init__(self, model_class_or_path, num_classes=2):
         super().__init__()
         self.save_hyperparameters()
@@ -74,23 +73,25 @@ class VLT5ClassificationModel(pl.LightningModule):
         visual_pos = batch['visual_pos']
         token_type_ids = batch['token_type_ids']
         
-        outputs = self.model(
+        output = self.model(
             input_ids=input_ids,
-            attention_mask=attention_mask,
             vis_inputs=(visual_feats, visual_pos),
-            token_type_ids = token_type_ids
+            labels=labels,
+            reduce_loss=True
         )
 
-        pooled_output = outputs[0][:, 0]  # Extract the [CLS] token embedding
-        preds = self.classifier(pooled_output)
-        loss = F.cross_entropy(preds, labels)
+        logits = self.classification_head(outputs.last_hidden_state[:, 0, :])
+        loss = torch.nn.CrossEntropyLoss()(logits, labels)
+
+        # pooled_output = outputs[0][:, 0]  # Extract the [CLS] token embedding
+        # preds = self.classifier(pooled_output)
+        # loss = F.cross_entropy(preds, labels)
 
         self.train_acc(preds.argmax(dim=-1), labels)
         self.train_auroc(preds, labels)
         self.log('train_loss', loss, prog_bar=True)
         self.log('train_acc', self.train_acc, on_step=True, on_epoch=True, sync_dist=True)
         self.log('train_auroc', self.train_auroc, on_step=True, on_epoch=True, sync_dist=True)
-
 
         return loss
 
@@ -103,7 +104,7 @@ class VLT5ClassificationModel(pl.LightningModule):
         visual_feats = batch['visual_feats']
         visual_pos = batch['visual_pos']
         token_type_ids = batch['token_type_ids']
-        
+
         output = self.model(
             input_ids=input_ids,
             vis_inputs=(visual_feats, visual_pos),
@@ -111,16 +112,18 @@ class VLT5ClassificationModel(pl.LightningModule):
             reduce_loss=True
         )
 
-        pooled_output = outputs[0][:, 0]  # Extract the [CLS] token embedding
-        preds = self.classifier(pooled_output)
-        loss = F.cross_entropy(preds, labels)
+        logits = self.classification_head(outputs.last_hidden_state[:, 0, :])
+        loss = torch.nn.CrossEntropyLoss()(logits, labels)
+
+        # pooled_output = outputs[0][:, 0]  # Extract the [CLS] token embedding
+        # preds = self.classifier(pooled_output)
+        # loss = F.cross_entropy(preds, labels)
 
         self.train_acc(preds.argmax(dim=-1), labels)
         self.train_auroc(preds, labels)
         self.log('train_loss', loss, prog_bar=True)
         self.log('train_acc', self.train_acc, on_step=True, on_epoch=True, sync_dist=True)
         self.log('train_auroc', self.train_auroc, on_step=True, on_epoch=True, sync_dist=True)
-
 
         return loss
 
