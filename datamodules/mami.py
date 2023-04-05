@@ -13,29 +13,21 @@ from typing import Optional
 from transformers import FlavaProcessor
 from .utils import image_collate_fn_mami
 
-def get_dataset_attributes(dataset_name: str):
-    train_img_dir = "/mnt/sdb/aditi/MAMI/training/TRAINING/"
-    val_img_dir = "/mnt/sdb/aditi/MAMI/trial/Users/fersiniel/Desktop/MAMI - TO LABEL/TRIAL DATASET/"
-    test_img_dir = "/mnt/sdb/aditi/MAMI/test/test/"
-
-
-    if dataset_name == "mami":
-        return MamiDataset, {
-            "train": "/mnt/sdb/aditi/MAMI/training/TRAINING/training.csv",
-            "validate": "/mnt/sdb/aditi/MAMI/trial/Users/fersiniel/Desktop/MAMI - TO LABEL/TRIAL DATASET/trial.csv",
-            "test": "/mnt/sdb/aditi/MAMI/test/test/Test.csv",
-        }, train_img_dir, val_img_dir, test_img_dir
-
 class MamiDataModule(pl.LightningDataModule):
     """
     DataModule used for semantic segmentation in geometric generalization project
     """
 
-    def __init__(self, dataset_name, model_class_or_path, batch_size, shuffle_train, **kwargs):
+    def __init__(self, dataset_class: str, annotation_filepaths: dict, img_dir: dict, model_class_or_path: str, batch_size: int, shuffle_train: bool):
         super().__init__()
 
         # TODO: Separate this into a separate YAML configuration file
-        self.dataset_class, self.annotations_fp, self.img_dir, self.val_img_dir, self. test_img_dir = get_dataset_attributes(dataset_name)
+        self.dataset_class = globals()[dataset_class]
+        self.annotation_filepaths = annotation_filepaths
+        self.img_dir = img_dir
+
+        self.batch_size = batch_size
+        self.shuffle_train = shuffle_train
 
         self.batch_size = batch_size
         self.shuffle_train = shuffle_train
@@ -46,26 +38,26 @@ class MamiDataModule(pl.LightningDataModule):
     def setup(self, stage: Optional[str] = None):
         if stage == "fit" or stage is None:
             self.train = self.dataset_class(
-                annotations_file=self.annotations_fp["train"],
-                img_dir=self.img_dir
+                annotation_filepath=self.annotation_filepaths["train"],
+                img_dir=self.img_dir["train"]
             )
 
             self.validate = self.dataset_class(
-                annotations_file=self.annotations_fp["validate"],
-                img_dir=self.val_img_dir
+                annotation_filepath=self.annotation_filepaths["validate"],
+                img_dir=self.img_dir["validate"]
             )
 
         # Assign test dataset for use in dataloader(s)
         if stage == "test" or stage is None:
             self.test = self.dataset_class(
-                annotations_file=self.annotations_fp["test"],
-                img_dir=self.test_img_dir
+                annotation_filepath=self.annotation_filepaths["test"],
+                img_dir=self.img_dir["test"]
             )
 
         if stage == "predict" or stage is None:
             self.predict = self.dataset_class(
-                annotations_file=self.annotations_fp["predict"],
-                img_dir=self.img_dir
+                annotation_filepath=self.annotation_filepaths["predict"],
+                img_dir=self.img_dir["test"]
             )
 
     def train_dataloader(self):
@@ -82,8 +74,8 @@ class MamiDataModule(pl.LightningDataModule):
 
 class MamiDataset(Dataset):
     
-    def __init__(self, annotations_file, img_dir):
-        self.img_annotations = pd.read_csv(annotations_file, sep='\t')
+    def __init__(self, annotation_filepath, img_dir):
+        self.img_annotations = pd.read_csv(annotation_filepath, sep='\t')
         self.img_dir = img_dir
 
     def __len__(self):

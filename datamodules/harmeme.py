@@ -15,26 +15,19 @@ from transformers import FlavaProcessor
 
 from .utils import image_collate_fn_harmeme
 
-def get_dataset_attributes(dataset_name: str):
-    img_dir = "/mnt/sdb/aditi/mmf/data/datasets/memes/defaults/images/"
-
-    if dataset_name == "harmeme":
-        return HarMemeDataset, {
-            "train": "/mnt/sdb/aditi/mmf/data/datasets/memes/defaults/annotations/train.jsonl",
-            "validate": "/mnt/sdb/aditi/mmf/data/datasets/memes/defaults/annotations/val.jsonl",
-            "test": "/mnt/sdb/aditi/mmf/data/datasets/memes/defaults/annotations/test.jsonl"
-        }, img_dir
    
 class HarMemeDataModule(pl.LightningDataModule):
     """
     DataModule used for semantic segmentation in geometric generalization project
     """
 
-    def __init__(self, dataset_name, model_class_or_path, batch_size, shuffle_train, **kwargs):
+    def __init__(self, dataset_class: str, annotation_filepaths: dict, img_dir: str, model_class_or_path: str, batch_size: int, shuffle_train: bool):
         super().__init__()
 
         # TODO: Separate this into a separate YAML configuration file
-        self.dataset_class, self.annotations_fp, self.img_dir = get_dataset_attributes(dataset_name)
+        self.dataset_class = globals()[dataset_class]
+        self.annotation_filepaths = annotation_filepaths
+        self.img_dir = img_dir
 
         self.batch_size = batch_size
         self.shuffle_train = shuffle_train
@@ -46,25 +39,25 @@ class HarMemeDataModule(pl.LightningDataModule):
     def setup(self, stage: Optional[str] = None):
         if stage == "fit" or stage is None:
             self.train = self.dataset_class(
-                annotations_file=self.annotations_fp["train"],
+                annotation_filepath=self.annotation_filepaths["train"],
                 img_dir=self.img_dir
             )
 
             self.validate = self.dataset_class(
-                annotations_file=self.annotations_fp["validate"],
+                annotation_filepath=self.annotation_filepaths["validate"],
                 img_dir=self.img_dir
             )
 
         # Assign test dataset for use in dataloader(s)
         if stage == "test" or stage is None:
             self.test = self.dataset_class(
-                annotations_file=self.annotations_fp["test"],
+                annotation_filepath=self.annotation_filepaths["test"],
                 img_dir=self.img_dir
             )
 
         if stage == "predict" or stage is None:
             self.predict = self.dataset_class(
-                annotations_file=self.annotations_fp["predict"],
+                annotation_filepath=self.annotation_filepaths["predict"],
                 img_dir=self.img_dir
             )
 
@@ -83,8 +76,8 @@ class HarMemeDataModule(pl.LightningDataModule):
 
 class HarMemeDataset(Dataset):
 
-    def __init__(self, annotations_file, img_dir):
-        self.img_annotations = pd.read_json(annotations_file, lines=True)
+    def __init__(self, annotation_filepath, img_dir):
+        self.img_annotations = pd.read_json(annotation_filepath, lines=True)
         self.img_dir = img_dir
 
     def __len__(self):

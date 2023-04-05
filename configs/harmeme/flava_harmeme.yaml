@@ -1,0 +1,50 @@
+# lightning.pytorch==2.0.0
+seed_everything: 1111
+trainer:
+  accelerator: gpu
+  devices: 2
+  strategy: ddp_find_unused_parameters_true
+  max_epochs: 1
+  accumulate_grad_batches: 1
+  enable_checkpointing: True
+  callbacks: 
+    - class_path: lightning.pytorch.callbacks.ModelCheckpoint
+      init_args:
+        dirpath: checkpoints/flava/harmeme
+        monitor: val_auroc
+        mode: max
+        save_top_k: 1
+        every_n_epochs: 1
+        save_last: True
+    - class_path: lightning.pytorch.callbacks.EarlyStopping
+      init_args:
+        monitor: val_auroc
+        patience: 5
+        mode: max
+    - class_path: models.flava.MetricCallback
+      init_args: 
+        output_dict: {
+          "labels": 2
+        }
+model:
+  class_path: models.flava.FlavaClassificationModel
+  init_args:
+    model_class_or_path: facebook/flava-full
+    output_dict: {
+      "intensity": 3,
+      "target": 4
+    }
+data:
+  class_path: datamodules.harmeme.HarMemeDataModule
+  init_args:
+    dataset_class: HarMemeDataset
+    img_dir: /mnt/sdb/aditi/mmf/data/datasets/memes/defaults/images/
+    annotation_filepaths: {
+      train: /mnt/sdb/aditi/mmf/data/datasets/memes/defaults/annotations/train.jsonl,
+      validate: /mnt/sdb/aditi/mmf/data/datasets/memes/defaults/annotations/val.jsonl,
+      test: /mnt/sdb/aditi/mmf/data/datasets/memes/defaults/annotations/test.jsonl,
+      predict: /mnt/sdb/aditi/mmf/data/datasets/memes/defaults/annotations/test.jsonl
+    }
+    model_class_or_path: facebook/flava-full
+    shuffle_train: True
+    batch_size: 32
