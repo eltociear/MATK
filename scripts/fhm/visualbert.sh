@@ -1,0 +1,1 @@
+python3 main.py fit --config configs/fhm/visual_bert.yaml --seed_everything 1111

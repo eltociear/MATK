@@ -10,7 +10,7 @@ trainer:
   callbacks: 
     - class_path: lightning.pytorch.callbacks.ModelCheckpoint
       init_args:
-        dirpath: checkpoints/flava/mami
+        dirpath: checkpoints/visualbert/fhm
         monitor: val_auroc
         mode: max
         save_top_k: 1
@@ -21,7 +21,7 @@ trainer:
         monitor: val_auroc
         patience: 5
         mode: max
-    - class_path: models.flava.MetricCallback
+    - class_path: models.visualbert.MetricCallback
       init_args: 
         output_dict: {
           "shaming": 2,
@@ -31,9 +31,9 @@ trainer:
           "stereotype": 2
         }
 model:
-  class_path: models.flava.FlavaClassificationModel
+  class_path: models.visualbert.VisualBertClassificationModel
   init_args:
-    model_class_or_path: facebook/flava-full
+    model_class_or_path: uclanlp/visualbert-vqa-coco-pre
     output_dict: {
       "shaming": 2,
       "misogynous": 2,

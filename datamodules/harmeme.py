@@ -11,17 +11,21 @@ from functools import partial
 from torchvision.transforms import ToTensor
 
 from typing import Optional
-from transformers import FlavaProcessor
+from transformers import FlavaProcessor, BertTokenizerFast
 
 from .utils import image_collate_fn_harmeme
+from .utils import image_collate_fn_harmeme_visualbert
 
+from .gqa_lxmert.modeling_frcnn import GeneralizedRCNN
+from .gqa_lxmert.lxmert_utils import Config
+from .gqa_lxmert.processing_image import Preprocess
    
 class HarMemeDataModule(pl.LightningDataModule):
     """
     DataModule used for semantic segmentation in geometric generalization project
     """
 
-    def __init__(self, dataset_class: str, annotation_filepaths: dict, img_dir: str, model_class_or_path: str, batch_size: int, shuffle_train: bool):
+    def __init__(self, dataset_class: str, annotation_filepaths: dict, img_dir: str, model_class_or_path: str, batch_size: int, shuffle_train: bool, features_class_path=None, **kwargs):
         super().__init__()
 
         # TODO: Separate this into a separate YAML configuration file
@@ -32,9 +36,38 @@ class HarMemeDataModule(pl.LightningDataModule):
         self.batch_size = batch_size
         self.shuffle_train = shuffle_train
 
-        processor = FlavaProcessor.from_pretrained(model_class_or_path)
-        self.collate_fn = partial(image_collate_fn_harmeme, processor=processor)
+        if "flava" in model_class_or_path:
+            
+            processor = FlavaProcessor.from_pretrained(model_class_or_path)
+            self.collate_fn = partial(image_collate_fn_harmeme, processor=processor)
 
+        elif "bert" in model_class_or_path:
+
+            processor = BertTokenizerFast.from_pretrained(model_class_or_path)
+
+            if features_class_path is None:
+                image_processor = {}
+                frcnn_cfg = Config.from_pretrained("unc-nlp/frcnn-vg-finetuned")
+                frcnn = GeneralizedRCNN.from_pretrained("unc-nlp/frcnn-vg-finetuned", config=frcnn_cfg)
+                image_preprocess = Preprocess(frcnn_cfg)
+
+                image_processor['frcnn_cfg'] = frcnn_cfg
+                image_processor['frcnn'] = frcnn
+                image_processor['image_preprocess'] = image_preprocess
+
+                self.collate_fn = partial(image_collate_fn_harmeme_visualbert, processor=processor, image_handler=image_processor)
+                
+            else:
+                ## read from the features file 
+                with open(features_class_path, 'r') as f:
+                    # Load the data from the JSON file into a dictionary
+                    read_dict = json.load(f)
+                
+                output_dict = OrderedDict()
+                for key, value in read_dict.items():
+                    output_dict[key] = torch.tensor(read_dict[key])
+                
+                self.collate_fn = partial(image_collate_fn_harmeme_visualbert, processor=processor, image_handler=output_dict)
 
     def setup(self, stage: Optional[str] = None):
         if stage == "fit" or stage is None:
@@ -97,5 +130,6 @@ class HarMemeDataset(Dataset):
             'id': img_id,
             'text': text, 
             'image': np.array(img),
-            'labels': labels
+            'labels': labels,
+            'img_path': img_path
         }
