@@ -4,7 +4,7 @@ trainer:
   accelerator: gpu
   devices: 2
   strategy: ddp_find_unused_parameters_true
-  max_epochs: 1
+  max_epochs: 50
   accumulate_grad_batches: 1
   enable_checkpointing: True
   callbacks: 
