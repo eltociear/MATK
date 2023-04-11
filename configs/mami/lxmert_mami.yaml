@@ -10,7 +10,7 @@ trainer:
   callbacks: 
     - class_path: lightning.pytorch.callbacks.ModelCheckpoint
       init_args:
-        dirpath: checkpoints/visualbert/fhm
+        dirpath: checkpoints/lxmert/fhm
         monitor: val_auroc
         mode: max
         save_top_k: 1
@@ -21,25 +21,17 @@ trainer:
         monitor: val_auroc
         patience: 5
         mode: max
-    - class_path: models.visualbert.MetricCallback
+    - class_path: models.lxmert.MetricCallback
       init_args: 
         output_dict: {
-          "shaming": 2,
-          "misogynous": 2,
-          "objectification": 2,
-          "violence": 2,
-          "stereotype": 2
+          "labels": 2
         }
 model:
-  class_path: models.visualbert.VisualBertClassificationModel
+  class_path: models.lxmert.LxmertClassificationModel
   init_args:
-    model_class_or_path: uclanlp/visualbert-vqa-coco-pre
+    model_class_or_path: unc-nlp/lxmert-base-uncased
     output_dict: {
-      "shaming": 2,
-      "misogynous": 2,
-      "objectification": 2,
-      "violence": 2,
-      "stereotype": 2
+      "labels": 2
     }
 data:
   class_path: datamodules.mami.MamiDataModule
@@ -57,6 +49,6 @@ data:
       test: /mnt/sdb/aditi/MAMI/test/test/Test.csv,
       predict: /mnt/sdb/aditi/MAMI/test/test/Test.csv
     }
-    model_class_or_path: bert-base-uncased
+    model_class_or_path: unc-nlp/lxmert-base-uncased
     shuffle_train: True
     batch_size: 32

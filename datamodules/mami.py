@@ -41,7 +41,7 @@ class MamiDataModule(pl.LightningDataModule):
             processor = FlavaProcessor.from_pretrained(model_class_or_path)
             self.collate_fn = partial(image_collate_fn_mami, processor=processor)
 
-        elif "bert" in model_class_or_path:
+        elif ("bert" in model_class_or_path) or ("lxmert" in model_class_or_path):
             processor = BertTokenizerFast.from_pretrained(model_class_or_path)
 
             if features_class_path is None:
