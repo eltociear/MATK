@@ -32,7 +32,7 @@ class LxmertClassificationModel(pl.LightningModule):
     def __init__(self, model_class_or_path, output_dict):
         super().__init__()
         self.save_hyperparameters()
-        self.model = FlavaModel.from_pretrained(model_class_or_path)
+        self.model = LxmertModel.from_pretrained(model_class_or_path)
 
         # set up classification
         self.mlps = nn.ModuleList([nn.Sequential(nn.Linear(self.model.config.hidden_size, value)) for key, value in output_dict.items()])
@@ -80,7 +80,7 @@ class LxmertClassificationModel(pl.LightningModule):
             label_targets = batch[label_list[i]]
             pooled_output = outputs[0][:, 0]  # Extract the [CLS] token embedding
             label_preds = self.mlps[i](pooled_output)
-            label_loss = F.cross_entropy(preds, labels)
+            label_loss = F.cross_entropy(label_preds, label_targets)
             loss += label_loss
             # self.compute_metrics_and_logs(label_preds, label_targets, label_loss,label_list[i] , 'train')
         
@@ -113,7 +113,7 @@ class LxmertClassificationModel(pl.LightningModule):
             label_targets = batch[label_list[i]]
             pooled_output = outputs[0][:, 0]  # Extract the [CLS] token embedding
             label_preds = self.mlps[i](pooled_output)
-            label_loss = F.cross_entropy(preds, labels)
+            label_loss = F.cross_entropy(label_preds, label_targets)
             loss += label_loss
             # self.compute_metrics_and_logs(label_preds, label_targets, label_loss,label_list[i] , 'train')
         
@@ -145,7 +145,7 @@ class LxmertClassificationModel(pl.LightningModule):
             label_targets = batch[label_list[i]]
             pooled_output = outputs[0][:, 0]  # Extract the [CLS] token embedding
             label_preds = self.mlps[i](pooled_output)
-            label_loss = F.cross_entropy(preds, labels)
+            label_loss = F.cross_entropy(label_preds, label_targets)
             loss += label_loss
             # self.compute_metrics_and_logs(label_preds, label_targets, label_loss,label_list[i] , 'train')
         

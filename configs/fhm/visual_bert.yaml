@@ -46,4 +46,4 @@ data:
     }
     model_class_or_path: bert-base-uncased
     shuffle_train: True
-    batch_size: 1
+    batch_size: 32

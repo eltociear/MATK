@@ -24,14 +24,16 @@ trainer:
     - class_path: models.lxmert.MetricCallback
       init_args: 
         output_dict: {
-          "labels": 2
-        }
+        "intensity": 3,
+        "target": 4
+      }
 model:
   class_path: models.lxmert.LxmertClassificationModel
   init_args:
     model_class_or_path: unc-nlp/lxmert-base-uncased
     output_dict: {
-      "labels": 2
+      "intensity": 3,
+      "target": 4
     }
 data:
   class_path: datamodules.harmeme.HarMemeDataModule

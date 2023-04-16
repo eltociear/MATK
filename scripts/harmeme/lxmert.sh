@@ -1,0 +1,1 @@
+python3 main.py fit --config configs/harmeme/lxmert_harmeme.yaml --seed_everything 1111

@@ -7,6 +7,7 @@ trainer:
   max_epochs: 50
   accumulate_grad_batches: 1
   enable_checkpointing: True
+  limit_train_batches: 1
   callbacks: 
     - class_path: lightning.pytorch.callbacks.ModelCheckpoint
       init_args:
@@ -24,14 +25,22 @@ trainer:
     - class_path: models.lxmert.MetricCallback
       init_args: 
         output_dict: {
-          "labels": 2
-        }
+        "shaming": 2,
+        "misogynous": 2,
+        "objectification": 2,
+        "violence": 2,
+        "stereotype": 2
+      }
 model:
   class_path: models.lxmert.LxmertClassificationModel
   init_args:
     model_class_or_path: unc-nlp/lxmert-base-uncased
     output_dict: {
-      "labels": 2
+      "shaming": 2,
+      "misogynous": 2,
+      "objectification": 2,
+      "violence": 2,
+      "stereotype": 2
     }
 data:
   class_path: datamodules.mami.MamiDataModule
@@ -51,4 +60,4 @@ data:
     }
     model_class_or_path: unc-nlp/lxmert-base-uncased
     shuffle_train: True
-    batch_size: 32
+    batch_size: 1
