@@ -29,8 +29,12 @@ class FHMDataModule(pl.LightningDataModule):
         self.batch_size = batch_size
         self.shuffle_train = shuffle_train
 
-        processor = AutoProcessor.from_pretrained(model_class_or_path)
-        self.collate_fn = partial(image_collate_fn, processor=processor)
+        if "roberta" in model_class_or_path:
+            processor = AutoTokenizer.from_pretrained(model_class_or_path)
+            self.collate_fn = partial(text_collate_fn, tokenizer=processor)
+        else:
+            processor = AutoProcessor.from_pretrained(model_class_or_path)
+            self.collate_fn = partial(image_collate_fn, processor=processor)
 
     def setup(self, stage: Optional[str] = None):
         if stage == "fit" or stage is None:
