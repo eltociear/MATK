@@ -3,11 +3,11 @@ This Python file takes as input 2 paths: ```img_dir``` as path to source image d
 ## Installation
 Run the following commands in terminal:
 ### Create a Tensorflow Docker Container
-Pull Tensorflow Docker Image, a latest version (Updated as of March 2023) is [nvcr.io/nvidia/tensorflow:23.02-tf2-py3](https://catalog.ngc.nvidia.com/orgs/nvidia/containers/tensorflow/tags).
+Pull Tensorflow Docker Image, a latest version (Updated as of March 2023) is [nvcr.io/nvidia/tensorflow:21.09-tf2-py3](https://catalog.ngc.nvidia.com/orgs/nvidia/containers/tensorflow/tags).
  
 
 ```bash
-docker pull nvcr.io/nvidia/tensorflow:23.02-tf2-py3
+docker pull nvcr.io/nvidia/tensorflow:21.09-tf2-py3
 ```
 You can ensure that the docker image has been downloaded via 
 ```bash
@@ -16,7 +16,7 @@ docker images
 Next, create (run) a docker container using the docker image.
 ```bash
 #replace <> with corresponding arguments
-docker run -it -p <local_port>:<container_port> --name <docker_name> --shm-size 10G --gpus all -v <external_dir>:/mnt/sda/<username> nvcr.io/nvidia/tensorflow:23.02-tf2-py3 bash
+docker run -it -p <local_port>:<container_port> --name <docker_name> --shm-size 10G --gpus all -v <external_dir>:/mnt/sda/<username> nvcr.io/nvidia/tensorflow:21.09-tf2-py3 bash
 
 # Useful Argument Options
 # --gpus <0, 1 or all>  (This depicts the GPU resources that your docker can see)
@@ -26,7 +26,7 @@ docker run -it -p <local_port>:<container_port> --name <docker_name> --shm-size 
 # -v <local_dir>:<container_dir> (Mount a local directory into docker directory)
 
 # Example Docker Container
-docker run -it -p 8808:8808 --name nguyen-tensorflow  --shm-size 10G --gpus all -v /mnt/sda/nguyen_hoang:/mnt/sda/nguyen_hoang nvcr.io/nvidia/tensorflow:23.02-tf2-py3 bash
+docker run -it -p 8808:8808 --name nguyen-tensorflow  --shm-size 10G --gpus all -v /mnt/sda/nguyen_hoang:/mnt/sda/nguyen_hoang nvcr.io/nvidia/tensorflow:21.09-tf2-py3 bash
 ```
 
 ### Install keras-ocr and opencv
