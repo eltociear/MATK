@@ -14,6 +14,70 @@ from skimage import transform
 from skimage.feature import canny
 from skimage.color import rgb2gray, gray2rgb
 
+def multi_boxes_mask(image, boxes, pad_crop=5):
+    """
+    image: np.uint8 (h, w, c)
+    boxes: np.int32 (n, 4) ymin, xmin, ymax, xmax
+    """
+    image = image.copy()
+    mask = np.zeros_like(image)
+    ih, iw, ic = image.shape
+    resize = lambda a, b: transform.resize(a, b, preserve_range=True).astype(np.uint8)
+    import matplotlib.pyplot as plt
+    
+    for box in boxes:
+        # image[box[0]: box[2], box[1]: box[3], :] = 0
+        box[:2] = np.maximum(box[:2] - pad_crop, 0)
+        box[2:] = np.minimum(box[2:] + pad_crop, image.shape[:2])
+        
+        patch = image[box[0]: box[2], box[1]: box[3], :]
+        pure_white = (patch > 253).all(axis=-1).astype(np.uint8)
+        mask[box[0]: box[2], box[1]: box[3], :] = pure_white[..., None]
+        
+        # plt.subplot(2, 1, 1)
+        # plt.imshow(patch)
+        # plt.subplot(2, 1, 2)
+        # plt.imshow(pure_white)
+        # plt.colorbar()
+        # plt.show()
+        
+        print('pure_white ', pure_white.sum())
+    
+    shift = 3
+    shifts = [
+        (0, 0), (shift, 0), (-shift, 0), (0, shift), (0, -shift),
+        (shift, shift), (-shift, shift), (shift, -shift), (-shift, -shift)
+    ]
+    # shifts = []
+    for offset in shifts:
+        ox, oy = offset
+        _mask = mask.copy()
+
+        slice_y = slice(max(0, 0 + oy), min(ih, ih + oy))
+        slice_x = slice(max(0, 0 + ox), min(iw, iw + ox))
+        print(slice_y, slice_x)
+        _mask = _mask[
+            max(0, 0 + oy): min(ih, ih + oy),
+            max(0, 0 + ox): min(iw, iw + ox),
+            :
+        ]
+        crop_pad = [
+            (max(0, -oy), max(0, oy)),
+            (max(0, -ox), max(0, ox)),
+            (0, 0)
+        ]
+        _mask = np.pad(_mask, crop_pad)
+        print(
+            crop_pad,
+            np.abs(_mask - mask).sum(),
+            np.abs(mask - np.clip(_mask + mask, 0, 1)).sum()
+        )
+        mask = np.clip(_mask + mask, 0, 1)
+
+    image = image * (1 - mask) + mask * 255 * 0
+    mask *= 255
+    return image, mask
+
 
 def cast_pred_type(pred):
     result = []
@@ -32,7 +96,7 @@ def detect(root_dir):
     images += glob.glob(os.path.join(image_dir, '**', '*.png')) 
     # images = images[:3]
     print(len(images))
-    assert len(images) > 9000 # adjust depending on number of images in image folder
+    assert len(images) > 0 # adjust depending on number of images in image folder
 
     out_json = os.path.join(root_dir, 'ocr.json')
     out_anno = {}
