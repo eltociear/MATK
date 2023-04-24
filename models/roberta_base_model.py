@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import lightning.pytorch as pl
 from transformers import RobertaForSequenceClassification
-
+from transformers import get_linear_schedule_with_warmup,AdamW
 from model_utils.prompthate.classifier import SingleClassifier, SimpleClassifier
 from model_utils.prompthate.rela_encoder import Rela_Module 
 
@@ -64,6 +64,10 @@ class ActualModel(pl.LightningModule):
         return loss
 
     def configure_optimizers(self):
-        self.optimizer = torch.optim.Adam(self.parameters(), lr=2e-5)
+        params=self.model.parameters()
+        self.optimizer=AdamW(params,
+                    lr=1e-5,
+                    eps=1e-8
+                   )
         return [self.optimizer]
     

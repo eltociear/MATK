@@ -3,6 +3,12 @@ import torch.nn as nn
 import torch.nn.functional as F
 import lightning.pytorch as pl
 from transformers import RobertaForMaskedLM
+from transformers import get_linear_schedule_with_warmup,AdamW
+
+def bce_for_loss(logits,labels):
+    loss=F.binary_cross_entropy_with_logits(logits, labels)
+    loss*=labels.size(1)
+    return loss
 
 class RobertaPromptModel(pl.LightningModule):
     def __init__(self, model_class_or_path, label_list):
@@ -33,11 +39,11 @@ class RobertaPromptModel(pl.LightningModule):
         
 
 class ActualModel(pl.LightningModule):
-    def __init__(self, model_class_or_path, label_list):
+    def __init__(self, model_class_or_path, label_list, opt):
         super().__init__()
         self.save_hyperparameters()
         self.model = RobertaPromptModel(model_class_or_path, label_list)
-       
+        self.opt = opt
     
     def training_step(self, batch, batch_idx):
         cap=batch['cap_tokens'].long().cuda()
@@ -48,10 +54,56 @@ class ActualModel(pl.LightningModule):
         mask_pos=batch['mask_pos'].cuda()
         logits=self.model(cap,mask,mask_pos,feat)
 
-        loss = F.cross_entropy(logits, target)
+        if self.opt["FINE_GRIND"]:
+            attack=batch['attack'].cuda()#B,6
+            logits[:,1]=torch.sum(logits[:,1:],dim=1)
+            logits=logits[:,:2]
+
+        loss=bce_for_loss(logits,target)
 
         return loss
 
     def configure_optimizers(self):
-        self.optimizer = torch.optim.Adam(self.parameters(), lr=2e-5)
+        # self.optimizer = torch.optim.Adam(self.parameters(), lr=2e-5)
+        # return [self.optimizer]
+        #initialization of optimizer
+        params = {}
+        for n, p in self.model.named_parameters():
+            if self.opt["FIX_LAYERS"] > 0:
+                if 'encoder.layer' in n:
+                    try:
+                        layer_num = int(n[n.find('encoder.layer') + 14:].split('.')[0])
+                    except:
+                        print(n)
+                        raise Exception("")
+                    if layer_num >= self.opt["FIX_LAYERS"]:
+                        print('yes', n)
+                        params[n] = p
+                    else:
+                        print('no ', n)
+                elif 'embeddings' in n:
+                    print('no ', n)
+                else:
+                    print('yes', n)
+                    params[n] = p
+            else:
+                params[n] = p
+        no_decay = ["bias", "LayerNorm.weight"]
+        optimizer_grouped_parameters = [
+            {
+                "params": [p for n, p in params.items() if not any(nd in n for nd in no_decay)],
+                "weight_decay": self.opt["WEIGHT_DECAY"],
+            },
+            {
+                "params": [p for n, p in params.items() if any(nd in n for nd in no_decay)],
+                "weight_decay": 0.0,
+            },
+        ]
+    
+        self.optimizer = AdamW(
+            optimizer_grouped_parameters,
+            lr=self.opt["LR_RATE"],
+            eps=self.opt["EPS"],
+        )
+        # scheduler is missing
         return [self.optimizer]
