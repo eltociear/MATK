@@ -1,1 +1,0 @@
-python3 main.py fit --config configs/roberta/roberta_new.yaml --seed_everything 1111
