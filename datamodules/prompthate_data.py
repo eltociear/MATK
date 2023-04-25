@@ -54,7 +54,6 @@ class Multimodal_Data():
     def __init__(self,opt,tokenizer,dataset,mode='train',few_shot_index=0):
         super(Multimodal_Data,self).__init__()
         self.opt=opt
-        print(self.opt)
         self.tokenizer = tokenizer
         self.mode=mode
         if self.opt['FEW_SHOT']:
@@ -413,11 +412,16 @@ class MultimodalDataModule(pl.LightningDataModule):
 
     def setup(self, stage: Optional[str] = None):
         if stage == "fit" or stage is None:
-            print(self.opt)
             self.train = Multimodal_Data(self.opt, self.tokenizer, self.opt['DATASET'], 'train', self.opt['SEED']-1111)
 
+            self.validate = Multimodal_Data(self.opt, self.tokenizer, self.opt['DATASET'],'test')
+
+        # Assign test dataset for use in dataloader(s)
         if stage == "test" or stage is None:
-            self.test = Multimodal_Data(self.opt, self.tokenizer, self.opt['DATASET'],'test')
+            self.test = Multimodal_Data(self.opt, self.tokenizer, self.opt['DATASET'], 'train', self.opt['SEED']-1111, 'test')
+
+        if stage == "predict" or stage is None:
+            self.predict = Multimodal_Data(self.opt, self.tokenizer, self.opt['DATASET'], 'train', self.opt['SEED']-1111, 'test')
 
 
     def train_dataloader(self):

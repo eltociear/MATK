@@ -22,12 +22,19 @@ trainer:
         patience: 5
         mode: max
 model:
-  class_path: models.roberta_prompt_model.ActualModel
+  class_path: models.roberta_prompt_model.PromptModel
   init_args:
     model_class_or_path: roberta-large
     label_list: 
       - 205
       - 1099
+    opt: 
+      FINE_GRIND : False
+      WEIGHT_DECAY : 0.01
+      LR_RATE : 1e-05
+      EPS : 1e-08
+      FIX_LAYERS : 0
+    
 data:
   class_path: datamodules.prompthate_data.MultimodalDataModule
   init_args:

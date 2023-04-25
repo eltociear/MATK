@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torchmetrics
 import lightning.pytorch as pl
 from transformers import RobertaForSequenceClassification
 from transformers import get_linear_schedule_with_warmup,AdamW
@@ -29,7 +30,7 @@ class RobertaBaseModel(nn.Module):
         logits=self.classifier(joint_repre)
         return logits
         
-class ActualModel(pl.LightningModule):
+class BaseModel(pl.LightningModule):
     def __init__(self, model_class_or_path, opt):
         super().__init__()
         self.save_hyperparameters()
@@ -50,7 +51,12 @@ class ActualModel(pl.LightningModule):
         proj_v=SingleClassifier(opt["FEAT_DIM"],opt["ROBERTA_DIM"],opt["FC_DROPOUT"])
         self.model = RobertaBaseModel(text_encoder,classifier,attention,proj_v)
        
-    
+        self.train_acc = torchmetrics.Accuracy(task="multiclass", num_classes=2)
+        self.train_auroc = torchmetrics.AUROC(task="multiclass", num_classes=2)
+
+        self.val_acc = torchmetrics.Accuracy(task="multiclass", num_classes=2)
+        self.val_auroc = torchmetrics.AUROC(task="multiclass", num_classes=2)
+
     def training_step(self, batch, batch_idx):
         cap=batch['cap_tokens'].long().cuda()
         label=batch['label'].float().cuda().view(-1,1)
@@ -60,6 +66,36 @@ class ActualModel(pl.LightningModule):
         logits=self.model(cap,mask,feat)
 
         loss = F.cross_entropy(logits, target)
+        # loss.backward()
+        self.optimizer.step()
+        self.optimizer.zero_grad()
+
+        self.train_acc(logits, target.argmax(dim=-1))
+        self.train_auroc(logits, target.argmax(dim=-1))
+        self.log('train_loss', loss, prog_bar=True, on_step=True, on_epoch=True, sync_dist=True)
+        self.log('train_acc', self.train_acc, on_step=True, on_epoch=True, sync_dist=True)
+        self.log('train_auroc', self.train_auroc, on_step=True, on_epoch=True, sync_dist=True)
+        return loss
+
+    def validation_step(self, batch, batch_idx):
+        cap=batch['cap_tokens'].long().cuda()
+        label=batch['label'].float().cuda().view(-1,1)
+        mask=batch['mask'].cuda()
+        target=batch['target'].cuda()
+        feat=None
+        logits=self.model(cap,mask,feat)
+
+        loss = F.cross_entropy(logits, target)
+
+        # loss.backward()
+        self.optimizer.step()
+        self.optimizer.zero_grad()
+
+        self.val_acc(logits, target.argmax(dim=-1))
+        self.val_auroc(logits, target.argmax(dim=-1))
+        self.log('val_loss', loss, prog_bar=True, on_step=True, on_epoch=True, sync_dist=True)
+        self.log('val_acc', self.val_acc, on_step=True, on_epoch=True, sync_dist=True)
+        self.log('val_auroc', self.val_auroc, on_step=True, on_epoch=True, sync_dist=True)
 
         return loss
 

@@ -4,10 +4,9 @@ trainer:
   accelerator: gpu
   devices: 2
   strategy: ddp_find_unused_parameters_true
-  max_epochs: 1
+  max_epochs: 50
   accumulate_grad_batches: 1
   enable_checkpointing: True
-  limit_train_batches: 1
   callbacks: 
     - class_path: lightning.pytorch.callbacks.ModelCheckpoint
       init_args:
@@ -23,7 +22,7 @@ trainer:
         patience: 5
         mode: max
 model:
-  class_path: models.roberta_base_model.ActualModel
+  class_path: models.roberta_base_model.BaseModel
   init_args:
     model_class_or_path: roberta-large
     opt: 
@@ -84,7 +83,7 @@ data:
   init_args:
     model_class_or_path: roberta-large
     shuffle_train: True
-    batch_size: 1
+    batch_size: 32
     opt: 
       DATASET : harm
       FEW_SHOT : False

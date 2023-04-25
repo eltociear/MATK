@@ -4,6 +4,7 @@ import torch.nn.functional as F
 import lightning.pytorch as pl
 from transformers import RobertaForMaskedLM
 from transformers import get_linear_schedule_with_warmup,AdamW
+import torchmetrics
 
 def bce_for_loss(logits,labels):
     loss=F.binary_cross_entropy_with_logits(logits, labels)
@@ -34,35 +35,77 @@ class RobertaPromptModel(pl.LightningModule):
                                                 ].unsqueeze(-1))
             #print(prediction_mask_scores[:, self.label_word_list[label_id]].shape)
         logits = torch.cat(logits, -1)
-        #print(logits.shape)
         return logits
         
 
-class ActualModel(pl.LightningModule):
+class PromptModel(pl.LightningModule):
     def __init__(self, model_class_or_path, label_list, opt):
         super().__init__()
         self.save_hyperparameters()
         self.model = RobertaPromptModel(model_class_or_path, label_list)
         self.opt = opt
+
+        self.train_acc = torchmetrics.Accuracy(task="multiclass", num_classes=len(label_list))
+        self.train_auroc = torchmetrics.AUROC(task="multiclass", num_classes=len(label_list))
+
+        self.val_acc = torchmetrics.Accuracy(task="multiclass", num_classes=len(label_list))
+        self.val_auroc = torchmetrics.AUROC(task="multiclass", num_classes=len(label_list))
     
     def training_step(self, batch, batch_idx):
-        cap=batch['cap_tokens'].long().cuda()
-        label=batch['label'].float().cuda().view(-1,1)
-        mask=batch['mask'].cuda()
-        target=batch['target'].cuda()
-        feat=None
-        mask_pos=batch['mask_pos'].cuda()
-        logits=self.model(cap,mask,mask_pos,feat)
+        
+        cap = batch['cap_tokens'].long().cuda()
+        label = batch['label'].float().cuda().view(-1, 1)
+        mask = batch['mask'].cuda()
+        target = batch['target'].cuda()
+        feat = None
+        mask_pos = batch['mask_pos'].cuda()
+        logits = self.model(cap, mask, mask_pos, feat)
 
         if self.opt["FINE_GRIND"]:
-            attack=batch['attack'].cuda()#B,6
-            logits[:,1]=torch.sum(logits[:,1:],dim=1)
-            logits=logits[:,:2]
+            attack = batch['attack'].cuda() #B,6
+            logits[:, 1] = torch.sum(logits[:, 1:], dim=1)
+            logits = logits[:, :2]
 
-        loss=bce_for_loss(logits,target)
+        loss = F.binary_cross_entropy_with_logits(logits, target)
+        # loss.backward()
+        self.optimizer.step()
+        self.optimizer.zero_grad()
+
+        self.train_acc(logits, target.argmax(dim=-1))
+        self.train_auroc(logits, target.argmax(dim=-1))
+        self.log('train_loss', loss, prog_bar=True, on_step=True, on_epoch=True, sync_dist=True)
+        self.log('train_acc', self.train_acc, on_step=True, on_epoch=True, sync_dist=True)
+        self.log('train_auroc', self.train_auroc, on_step=True, on_epoch=True, sync_dist=True)
 
         return loss
 
+    def validation_step(self, batch, batch_idx):
+        cap = batch['cap_tokens'].long().cuda()
+        label = batch['label'].float().cuda().view(-1, 1)
+        mask = batch['mask'].cuda()
+        target = batch['target'].cuda()
+        feat = None
+        mask_pos = batch['mask_pos'].cuda()
+        logits = self.model(cap, mask, mask_pos, feat)
+
+        if self.opt["FINE_GRIND"]:
+            attack = batch['attack'].cuda() #B,6
+            logits[:, 1] = torch.sum(logits[:, 1:], dim=1)
+            logits = logits[:, :2]
+
+        loss = F.binary_cross_entropy_with_logits(logits, target)
+        # loss.backward()
+        self.optimizer.step()
+        self.optimizer.zero_grad()
+
+        self.val_acc(logits, target.argmax(dim=-1))
+        self.val_auroc(logits, target.argmax(dim=-1))
+        self.log('val_loss', loss, prog_bar=True, on_step=True, on_epoch=True, sync_dist=True)
+        self.log('val_acc', self.val_acc, on_step=True, on_epoch=True, sync_dist=True)
+        self.log('val_auroc', self.val_auroc, on_step=True, on_epoch=True, sync_dist=True)
+
+        return loss
+    
     def configure_optimizers(self):
         # self.optimizer = torch.optim.Adam(self.parameters(), lr=2e-5)
         # return [self.optimizer]
