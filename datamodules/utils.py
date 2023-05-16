@@ -6,7 +6,6 @@ from collections import OrderedDict
 from .gqa_lxmert.processing_image import Preprocess
 from .gqa_lxmert.visualizing_image import SingleImageViz
 import io
-from IPython.display import clear_output, Image, display
 import PIL.Image
 from .gqa_lxmert.modeling_frcnn import GeneralizedRCNN
 from .gqa_lxmert.lxmert_utils import Config
@@ -313,5 +312,27 @@ def image_collate_fn_harmeme_visualbert(batch, processor, image_handler):
 
     inputs['visual_feats'] = output_dict.get("roi_features")
     inputs['visual_pos'] = visual_pos=output_dict.get("normalized_boxes")
+
+def text_collate_fn(batch, tokenizer):
+    texts = []
+    for item in batch:
+        texts.append(item["text"])
+    
+    inputs = tokenizer(  
+        text=texts, return_tensors="pt", padding=True
+    )
+
+    # Get Labels
+    label_name = "label"
+    if label_name in batch[0].keys():
+        labels = [feature[label_name] for feature in batch]
+
+        if isinstance(labels[0], str):
+            labels = tokenizer(labels, truncation=True, return_tensors="pt", add_special_tokens=False).input_ids
+            labels[labels == tokenizer.pad_token_id] = -100
+        else:
+            labels = torch.tensor(labels, dtype=torch.int64)
+        
+        inputs['labels'] = labels
 
     return inputs
