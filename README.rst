@@ -6,15 +6,30 @@ the state-of-the-art Vision Language Models on the various downstream
 memes tasks (i.e. hateful memes classification, attacked group
 classification, hateful memes explanation generation).
 
-**Table of Content** Coming soon…
+.. contents:: Table of Contents 
+   :depth: 2
 
-Dataset Format
-~~~~~~~~~~~~~~~~~~
-Each meme dataset is required to have the following fields:
+***************
+Installation
+***************
 
-* img: image filepath
-* text: superimposed/overlaid text
-* {labels}: the label name changes based on the dataset (i.e. hateful, offensive)
+Coming soon...
+
+***************
+Main Features
+***************
+
+Coming soon...
+
+***************
+Examples and Tutorials
+***************
+
+Coming soon...
+
+**************************
+Datasets and Preprocessing
+**************************
 
 
 Supported Datasets
@@ -23,13 +38,33 @@ Supported Datasets
 Coming soon…
 
 
+Adding Custom Datasets
+~~~~~~~~~~~~~~~~~~
+*Dataset Format.* Each meme dataset is required to have the following fields:
+
+* img: image filepath
+* text: superimposed/overlaid text
+* {labels}: the label name changes based on the dataset (i.e. hateful, offensive)
+
+
+**************************
+Vision-Language Meme Models and Evaluation
+**************************
+
 Supported Models
 ~~~~~~~~~~~~~~~~
 
 Coming soon…
 
+
+**************************
+Meme Models Analysis
+**************************
+
+
+**************************
 Authors and acknowledgment
---------------------------
+**************************
 
 *  Ming Shan HEE, Singapore University of Technology and Design (SUTD)
 *  Aditi, Singapore University of Technology and Design (SUTD)
@@ -37,10 +72,15 @@ Authors and acknowledgment
 *  Rui CAO, Singapore Management University (SMU)
 *  Prof. Roy Ka-Wei LEE, Singapore University of Technology and Design (SUTD)
 
+**************************
 License
--------
+**************************
 
 Coming soon...
 
+**************************
 Project status
---------------
+**************************
+[] Dataset Preprocessing
+[] README.rst updates
+[] Implementing analysis code
