@@ -19,7 +19,10 @@ Coming soon...
 Main Features
 ***************
 
-Coming soon...
+* Provides a framework for training and evaluating a different multimodal classification models on well known hateful memes datasets
+* Allows for efficient experimentation and parameter tuning through modification of configuration files (under configs directory)
+* Evaluate models using different state-of-the-art evaluation metrics such as Accuracy and AUROC
+
 
 ***************
 Examples and Tutorials
@@ -34,7 +37,7 @@ Datasets and Preprocessing
 
 Supported Datasets
 ~~~~~~~~~~~~~~~~~~
-+------------------------------+------------------------------------------------+-----------------------------------------------------------------------------------------------------------------+
++-------------------------------------------+------------------------------------------------+-----------------------------------------------------------------------------------------------------------------+
 | Dataset                                   | Paper                                                | Source                                                                                       |
 +===========================================+======================================================+==============================================================================================+
 | Hateful Memes dataset                     |  https://arxiv.org/pdf/2112.04482.pdf                | https://www.drivendata.org/accounts/login/?next=/competitions/70/hateful-memes-phase-2/data/ |
@@ -73,6 +76,8 @@ Supported Models
 | BartForConditionalGeneration | https://aclanthology.org/2020.acl-main.703.pdf | https://huggingface.co/docs/transformers/model_doc/bart#transformers.BartForConditionalGeneration  |
 +------------------------------+------------------------------------------------+----------------------------------------------------------------------------------------------------+
 | VisualBertModel              | https://arxiv.org/pdf/1908.03557.pdf           | https://huggingface.co/docs/transformers/model_doc/visual_bert#transformers.VisualBertModel        |
++------------------------------+------------------------------------------------+----------------------------------------------------------------------------------------------------+
+| PromptHate                   | https://arxiv.org/pdf/2302.04156.pdf           | https://gitlab.com/bottle_shop/safe/prompthate                                                     |
 +------------------------------+------------------------------------------------+----------------------------------------------------------------------------------------------------+
 
 
