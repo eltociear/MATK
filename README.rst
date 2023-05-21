@@ -34,8 +34,10 @@ Datasets and Preprocessing
 
 Supported Datasets
 ~~~~~~~~~~~~~~~~~~
-
-Coming soon…
+.. csv-table:: Supported Datasets
+   :file: dataset_table.csv
+   :widths: 30, 70
+   :header-rows: 1
 
 
 Adding Custom Datasets
@@ -53,8 +55,10 @@ Vision-Language Meme Models and Evaluation
 
 Supported Models
 ~~~~~~~~~~~~~~~~
-
-Coming soon…
+.. csv-table:: Supported Datasets
+   :file: model_table.csv
+   :widths: 30, 70
+   :header-rows: 1
 
 
 **************************
@@ -67,7 +71,7 @@ Authors and acknowledgment
 **************************
 
 *  Ming Shan HEE, Singapore University of Technology and Design (SUTD)
-*  Aditi, Singapore University of Technology and Design (SUTD)
+*  Aditi KUMARESAN, Singapore University of Technology and Design (SUTD)
 *  Nirmalendu PRAKASH, Singapore University of Technology and Design (SUTD)
 *  Rui CAO, Singapore Management University (SMU)
 *  Prof. Roy Ka-Wei LEE, Singapore University of Technology and Design (SUTD)
