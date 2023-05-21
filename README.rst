@@ -55,11 +55,17 @@ Vision-Language Meme Models and Evaluation
 
 Supported Models
 ~~~~~~~~~~~~~~~~
-.. csv-table:: Supported Datasets
-   :file: model_table.csv
-   :widths: 30, 70
-   :header-rows: 1
-
++------------+------------+-----------+
+| Header 1   | Header 2   | Header 3  |
++============+============+===========+
+| body row 1 | column 2   | column 3  |
++------------+------------+-----------+
+| body row 2 | Cells may span columns.|
++------------+------------+-----------+
+| body row 3 | Cells may  | - Cells   |
++------------+ span rows. | - contain |
+| body row 4 |            | - blocks. |
++------------+------------+-----------+
 
 **************************
 Meme Models Analysis
