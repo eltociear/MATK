@@ -13,7 +13,9 @@ classification, hateful memes explanation generation).
 Installation
 ***************
 
-Coming soon...
+To get started, run the following command::
+
+  pip install -r requirements.txt
 
 ***************
 Main Features

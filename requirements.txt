@@ -1,4 +1,6 @@
+clip==1.0
 filelock==3.0.12
+ipython==7.34.0
 lightning==2.0.0
 matplotlib==3.4.2
 numexpr==2.8.4
