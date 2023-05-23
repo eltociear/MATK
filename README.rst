@@ -90,10 +90,9 @@ Supported Vision-Language Models
 
 Project Status
 ~~~~~~~~~~~~~~
-.. |green_check| raw:: html
+.. |green_check| unicode:: U+2714
+   :trim:
 
-   <span style="color:green">&#x2714;</span>
-|green_check|
 +-------------------+---------------+---------------+---------------+---------------+---------------+---------------+
 |                   | BART          | PromptHate    | FLAVA         | VL-T5         | LXMERT        | VisualBERT    |
 +===================+===============+===============+===============+===============+===============+===============+
