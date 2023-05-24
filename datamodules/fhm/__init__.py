@@ -8,7 +8,9 @@ from transformers import AutoProcessor, AutoTokenizer
 from torch.utils.data import DataLoader
 
 from . import challenge, finegrained
-from ..utils import image_collate_fn, text_collate_fn
+from datamodules.collators import get_collator
+
+from typing import List
 
 class VisionLanguageDataModule(pl.LightningDataModule):
     """
@@ -23,7 +25,8 @@ class VisionLanguageDataModule(pl.LightningDataModule):
         batch_size: int,
         shuffle_train: bool,
         dataset_type: str,
-        task: str
+        task: str,
+        labels: List[str]
     ):
         super().__init__()
 
@@ -32,9 +35,8 @@ class VisionLanguageDataModule(pl.LightningDataModule):
         self.batch_size = batch_size
         self.shuffle_train = shuffle_train
         self.task = task
-
-        processor = AutoProcessor.from_pretrained(model_class_or_path)
-        self.collate_fn = partial(image_collate_fn, processor=processor)
+        self.labels = labels
+        self.collate_fn = get_collator(model_class_or_path, labels=labels)
 
         if dataset_type == "finegrained":
             self.dataset_class = finegrained.VisionLanguageDataset
@@ -48,13 +50,15 @@ class VisionLanguageDataModule(pl.LightningDataModule):
             self.train = self.dataset_class(
                 annotation_filepath=self.annotation_filepaths["train"],
                 image_dir=self.image_dir,
-                task=self.task
+                task=self.task,
+                labels=self.labels
             )
 
             self.validate = self.dataset_class(
                 annotation_filepath=self.annotation_filepaths["validate"],
                 image_dir=self.image_dir,
-                task=self.task
+                task=self.task,
+                labels=self.labels
             )
 
         # Assign test dataset for use in dataloader(s)
@@ -62,14 +66,16 @@ class VisionLanguageDataModule(pl.LightningDataModule):
             self.test = self.dataset_class(
                 annotation_filepath=self.annotation_filepaths["test"],
                 image_dir=self.image_dir,
-                task=self.task
+                task=self.task,
+                labels=self.labels
             )
 
         if stage == "predict" or stage is None:
             self.predict = self.dataset_class(
                 annotation_filepath=self.annotation_filepaths["predict"],
                 image_dir=self.image_dir,
-                task=self.task
+                task=self.task,
+                labels=self.labels
             )
 
     def train_dataloader(self):
@@ -101,7 +107,8 @@ class LanguageDataModule(pl.LightningDataModule):
         batch_size: int,
         shuffle_train: bool,
         dataset_type: str,
-        task: str
+        task: str,
+        labels: List[str]
     ):
         super().__init__()
 
@@ -119,7 +126,8 @@ class LanguageDataModule(pl.LightningDataModule):
         self.output_template = output_template
         self.label2word = label2word
         self.task = task
-        self.collate_fn = partial(text_collate_fn, tokenizer=tokenizer)
+        self.labels = labels
+        self.collate_fn = get_collator(model_class_or_path, labels=labels)
 
         if dataset_type == "finegrained":
             self.dataset_class = finegrained.LanguageDataset
@@ -136,7 +144,8 @@ class LanguageDataModule(pl.LightningDataModule):
                 input_template=self.input_template,
                 output_template=self.output_template,
                 label2word=self.label2word,
-                task=self.task
+                task=self.task,
+                labels=self.labels
             )
 
             self.validate = self.dataset_class(
@@ -145,7 +154,8 @@ class LanguageDataModule(pl.LightningDataModule):
                 input_template=self.input_template,
                 output_template=self.output_template,
                 label2word=self.label2word,
-                task=self.task
+                task=self.task,
+                labels=self.labels
             )
 
         # Assign test dataset for use in dataloader(s)
@@ -156,7 +166,8 @@ class LanguageDataModule(pl.LightningDataModule):
                 input_template=self.input_template,
                 output_template=self.output_template,
                 label2word=self.label2word,
-                task=self.task
+                task=self.task,
+                labels=self.labels
             )
 
         if stage == "predict" or stage is None:
@@ -166,7 +177,8 @@ class LanguageDataModule(pl.LightningDataModule):
                 input_template=self.input_template,
                 output_template=self.output_template,
                 label2word=self.label2word,
-                task=self.task
+                task=self.task,
+                labels=self.labels
             )
 
     def train_dataloader(self):

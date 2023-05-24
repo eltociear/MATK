@@ -21,6 +21,8 @@ from .gqa_lxmert.modeling_frcnn import GeneralizedRCNN
 from .gqa_lxmert.lxmert_utils import Config
 from .gqa_lxmert.processing_image import Preprocess
    
+from typing import List
+
 class HarMemeDataModule(pl.LightningDataModule):
     """
     DataModule used for semantic segmentation in geometric generalization project
@@ -110,12 +112,28 @@ class HarMemeDataModule(pl.LightningDataModule):
 
 class HarMemeDataset(Dataset):
 
-    def __init__(self, annotation_filepath, img_dir):
+    def __init__(self, 
+                 annotation_filepath: str, 
+                 img_dir: str,
+                 labels: List[str], 
+                 generative_task: bool):
         self.img_annotations = pd.read_json(annotation_filepath, lines=True)
         self.img_dir = img_dir
+        self.labels = labels
+
+        if not generative_task:
+            self._transform_labels(self.img_annotations, self.labels)
 
     def __len__(self):
         return len(self.img_annotations)
+    
+    def _transform_labels(annotations: pd.DataFrame, labels: List[str]):
+        for l in labels:
+            uniques = annotations[l].unique().tolist()
+            labels2value = {value:idx for idx, value in enumerate(uniques.sort())}
+
+
+
 
     def __getitem__(self, idx):
         img_id = self.img_annotations.loc[idx, 'id']

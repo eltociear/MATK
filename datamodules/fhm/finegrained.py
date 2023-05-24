@@ -3,15 +3,17 @@ import numpy as np
 from PIL import Image
 from .base import LanguageBase, VisionLanguageBase, Tasks
 
+from typing import List
 
 class VisionLanguageDataset(VisionLanguageBase, Tasks):
     def __init__(
         self,
         annotation_filepath: str,
         image_dir: str,
-        task: str
+        task: str,
+        labels: List[str]
     ):
-        super().__init__(annotation_filepath, image_dir, task)
+        super().__init__(annotation_filepath, image_dir, task, labels)
 
     def get_hateful_cls(self, idx):
         img_id = self.annotations.loc[idx, 'img']
@@ -40,10 +42,12 @@ class LanguageDataset(LanguageBase, Tasks):
         input_template: str,
         output_template: str,
         label2word: dict,
-        task: str
+        task: str,
+        labels: List[str]
     ):
         super().__init__(annotation_filepath, auxiliary_dicts,
-                         input_template, output_template, label2word, task)
+                         input_template, output_template, label2word, 
+                         task, labels)
 
     def get_hateful_cls(self, idx):
         id = self.annotations.loc[idx, 'id']

@@ -3,6 +3,7 @@ import pickle as pkl
 import pandas as pd
 
 from torch.utils.data import Dataset
+from typing import List
 
 class Tasks(abc.ABC):
 
@@ -15,11 +16,13 @@ class VisionLanguageBase(Dataset):
         self,
         annotation_filepath: str,
         image_dir: str,
-        task: str
+        task: str,
+        labels: List[str]
     ):
         self.annotations = pd.read_json(annotation_filepath, lines=True)
         self.image_dir = image_dir
         self.task = task
+        self.labels = labels
 
     def __len__(self):
         return len(self.annotations)
@@ -39,11 +42,13 @@ class LanguageBase(Dataset):
         input_template: str,
         output_template: str,
         label2word: dict,
-        task: str
+        task: str,
+        labels: List[str]
     ):  
         self.annotations = pd.read_json(annotation_filepath, lines=True)
         self.auxiliary_data = self._load_auxiliary(auxiliary_dicts)
         self.task = task
+        self.labels = labels
 
         self.input_template = input_template
         self.output_template = output_template
