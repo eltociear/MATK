@@ -1,4 +1,4 @@
-clip==1.0
+git+https://github.com/openai/CLIP.git
 filelock==3.0.12
 ipython==7.34.0
 lightning==2.0.0
