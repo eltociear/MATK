@@ -3,6 +3,24 @@ import shutil
 import argparse
 import pandas as pd
 
+from tqdm import tqdm
+
+def copy_folder_with_progress(src_folder, dst_folder):
+    total_files = sum([len(files) for _, _, files in os.walk(src_folder)])
+    
+    with tqdm(total=total_files, unit='file') as pbar:
+        for root, dirs, files in os.walk(src_folder):
+            # Create corresponding directories in the destination folder
+            dst_root = os.path.join(dst_folder, os.path.relpath(root, src_folder))
+            os.makedirs(dst_root, exist_ok=True)
+
+            # Copy files to the destination folder
+            for file in files:
+                src_file = os.path.join(root, file)
+                dst_file = os.path.join(dst_root, file)
+                shutil.copy2(src_file, dst_file)
+                pbar.update(1)
+
 INTENSITY_MAP = {
     'not harmful': 0, 
     'somewhat harmful': 1, 
@@ -16,17 +34,18 @@ TARGET_MAP = {
     'society': 3
 }
 
-def main(
-        annotations_dir: str,
-        train_filename: str,
-        val_filename: str,
-        test_filename: str
-    ):
+def main(github_dir: str, dataset_dir: str):
+    
+    train_fp = os.path.join(github_dir, "data", "datasets", "memes", "defaults", "annotations", "train.jsonl")
+    test_fp = os.path.join(github_dir, "data", "datasets", "memes", "defaults", "annotations", "test.jsonl")
+    val_fp = os.path.join(github_dir, "data", "datasets", "memes", "defaults", "annotations", "val.jsonl")
+    
+    ## copy images
+    img_dir = os.path.join(github_dir, "data", "datasets", "memes", "defaults", "images")
+    img_out_dir = os.path.join(dataset_dir, "harmeme", "images")
+    os.makedirs(img_out_dir, exist_ok=True)
 
-    # remap intensity and target
-    train_fp = os.path.join(annotations_dir, train_filename)
-    val_fp = os.path.join(annotations_dir, val_filename)
-    test_fp = os.path.join(annotations_dir, test_filename)
+    copy_folder_with_progress(img_dir, img_out_dir)
 
     train_df = pd.read_json(train_fp, lines=True)
     val_df = pd.read_json(val_fp, lines=True)
@@ -44,39 +63,24 @@ def main(
     test_df['target'] = test_df['labels'].apply(lambda x: TARGET_MAP[x[1]] if len(x) > 1 else -1)
     test_df = test_df.rename({"image": "img"}, axis=1)
 
-    # shift the original file
-    archive_dir = os.path.join(annotations_dir, "original")
-    os.makedirs(archive_dir, exist_ok=True)
-
-    archived_train_fp = os.path.join(archive_dir, train_filename)
-    shutil.move(train_fp, archived_train_fp)
-
-    archived_val_fp = os.path.join(archive_dir, val_filename)
-    shutil.move(val_fp, archived_val_fp)
-
-    archived_test_fp = os.path.join(archive_dir, test_filename)
-    shutil.move(test_fp, archived_test_fp)
-    
     # create the new original file
-    new_train_fp = os.path.join(annotations_dir, "train.jsonl")
-    new_val_fp = os.path.join(annotations_dir, "val.jsonl")
-    new_test_fp = os.path.join(annotations_dir, "test.jsonl")
+    new_train_fp = os.path.join(dataset_dir, "harmeme", "annotations", "train.jsonl")
+    new_val_fp = os.path.join(dataset_dir, "harmeme", "annotations", "val.jsonl")
+    new_test_fp = os.path.join(dataset_dir, "harmeme", "annotations", "test.jsonl")
+    os.makedirs(os.path.dirname(new_train_fp), exist_ok=True)
+
     train_df.to_json(new_train_fp, orient="records", lines=True)
     val_df.to_json(new_val_fp, orient="records", lines=True)
     test_df.to_json(new_test_fp, orient="records", lines=True)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser("Converting Harmemes to Specified Format")
-    parser.add_argument("--annotation-dir", help="path to the annotation directory")
-    parser.add_argument("--train-filename", default="train.jsonl", help="filepath to the HarMemes train annotations")
-    parser.add_argument("--val-filename", default="val.jsonl", help="filepath to the HarMemes test annotations")
-    parser.add_argument("--test-filename", default="test.jsonl", help="filepath to the HarMemes test annotations")
+    parser = argparse.ArgumentParser("Converting FHM's finegrained dataset to specified format")
+    parser.add_argument("--github-dir", help="Folder path to the Facebook's Hateful Memes Fine-Grain directory")
+    parser.add_argument("--dataset-dir", help="Folder path to the dataset directory")
     args = parser.parse_args()
 
     main(
-        args.annotation_dir,
-        args.train_filename,
-        args.val_filename,
-        args.test_filename,
+        args.github_dir,
+        args.dataset_dir
     )
