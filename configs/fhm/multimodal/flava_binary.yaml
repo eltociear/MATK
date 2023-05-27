@@ -33,22 +33,23 @@ model:
   class_path: models.flava.FlavaClassificationModel
   init_args:
     model_class_or_path: facebook/flava-full
-    output_dict: {
+    cls_dict: {
       "label": 2
     }
 data:
-  class_path: datamodules.fhm.VisionLanguageDataModule
+  class_path: datamodules.VLImagesDataModule
   init_args:
-    image_dir: /mnt/sda/mshee/datasets/fhm/img/
-    annotation_filepaths: {
-      train: /mnt/sda/mshee/datasets/fhm/annotations/fine_grained/train.jsonl,
-      validate: /mnt/sda/mshee/datasets/fhm/annotations/fine_grained/dev_seen.jsonl,
-      test: /mnt/sda/mshee/datasets/fhm/annotations/fine_grained/dev_seen.jsonl,
-      predict: /mnt/sda/mshee/datasets/fhm/annotations/fine_grained/dev_seen.jsonl
-    }
     model_class_or_path: facebook/flava-full
+    frcnn_class_or_path: None
+    dataset_cls: FHMFGImagesDataset
+    image_dir: /mnt/sda/mshee/datasets/fhm/images/
+    annotation_filepaths: {
+      train: /mnt/sda/mshee/datasets/fhm_finegrained/annotations/train.jsonl,
+      validate: /mnt/sda/mshee/datasets/fhm_finegrained/annotations/dev_seen.jsonl,
+      test: /mnt/sda/mshee/datasets/fhm_finegrained/annotations/dev_seen.jsonl,
+      predict: /mnt/sda/mshee/datasets/fhm_finegrained/annotations/dev_seen.jsonl
+    }
     shuffle_train: True
-    dataset_type: finegrained
     task: hateful_cls
     labels:
     - label

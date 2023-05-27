@@ -29,18 +29,25 @@ class MetricCallback(Callback):
 
 
 class FlavaClassificationModel(pl.LightningModule):
-    def __init__(self, model_class_or_path, output_dict):
+    def __init__(
+            self, 
+            model_class_or_path: str,
+            cls_dict: dict
+        ):
         super().__init__()
         self.save_hyperparameters()
+
         self.model = FlavaModel.from_pretrained(model_class_or_path)
 
         # set up classification
-        self.mlps = nn.ModuleList([nn.Sequential(nn.Linear(self.model.config.multimodal_config.hidden_size, value)) for key, value in output_dict.items()])
+        self.mlps = nn.ModuleList([
+            nn.Linear(self.model.config.multimodal_config.hidden_size, value) 
+            for value in cls_dict.values()
+        ])
         
         # set up metric
-        self.metric_dict = output_dict
-
-        self.metric_callback = MetricCallback(self.metric_dict)
+        self.cls_dict = cls_dict
+        self.metric_callback = MetricCallback(self.cls_dict)
        
 
     def compute_metrics_and_logs(self, preds, labels, loss, prefix, step):
@@ -66,10 +73,10 @@ class FlavaClassificationModel(pl.LightningModule):
         loss = 0
 
         label_list = []
-        for k,v in self.metric_dict.items():
+        for k,v in self.cls_dict.items():
             label_list.append(k)
 
-        for i in range(len(self.metric_dict)):
+        for i in range(len(self.cls_dict)):
             label_targets = batch[label_list[i]]
             label_preds = self.mlps[i](model_outputs.multimodal_embeddings[:, 0])
             label_loss = F.cross_entropy(label_preds, label_targets)
@@ -89,57 +96,18 @@ class FlavaClassificationModel(pl.LightningModule):
         loss = 0
 
         label_list = []
-        for k,v in self.metric_dict.items():
+        for k,v in self.cls_dict.items():
             label_list.append(k)
 
-
-        for i in range(len(self.metric_dict)):
+        for i in range(len(self.cls_dict)):
             label_targets = batch[label_list[i]]
             label_preds = self.mlps[i](model_outputs.multimodal_embeddings[:, 0])
             label_loss = F.cross_entropy(label_preds, label_targets)
             loss += label_loss
-            # self.compute_metrics_and_logs(label_preds, label_targets, label_loss,label_list[i] , 'val')
+            
+            self.compute_metrics_and_logs(label_preds, label_targets, label_loss,label_list[i] , 'val')
         
         return loss
-
-
-    def test_step(self, batch, batch_idx):
-
-        model_outputs = self.model(
-            input_ids=batch["input_ids"],
-            attention_mask=batch["attention_mask"],
-            pixel_values=batch['pixel_values']
-        )
-
-        loss = 0
-
-        label_list = []
-        for k,v in self.metric_dict.items():
-            label_list.append(k)
-
-
-        for i in range(len(self.metric_dict)):
-            label_targets = batch[label_list[i]]
-            label_preds = self.mlps[i](model_outputs.multimodal_embeddings[:, 0])
-            label_loss = F.cross_entropy(label_preds, label_targets)
-            loss += label_loss
-            # self.compute_metrics_and_logs(label_preds, label_targets, label_loss,label_list[i] , 'test')
-
-        return None
-
-    def on_test_epoch_end(self):
-
-        print("shaming_test_acc:", self.shaming_test_acc.compute())
-        print("shaming_test_auroc:", self.shaming_test_auroc.compute())
-        print("misogynous_test_acc:", self.misogynous_test_acc.compute())
-        print("misogynous_test_auroc:", self.misogynous_test_auroc.compute())
-        print("stereotype_test_acc:", self.stereotype_test_acc.compute())
-        print("stereotype_test_auroc:", self.stereotype_test_auroc.compute())
-        print("objectification_test_acc:", self.objectification_test_acc.compute())
-        print("objectification_test_auroc:", self.objectification_test_auroc.compute())
-        print("objectification_test_acc:", self.objectification_test_acc.compute())
-        print("objectification_test_auroc:", self.objectification_test_auroc.compute())
-        
 
     def predict_step(self, batch, batch_idx):
         model_outputs = self.model(
@@ -151,11 +119,11 @@ class FlavaClassificationModel(pl.LightningModule):
         loss = 0
 
         label_list = []
-        for k,v in self.metric_dict.items():
+        for k,v in self.cls_dict.items():
             label_list.append(k)
 
         results = {}
-        for i in range(len(self.metric_dict)):
+        for i in range(len(self.cls_dict)):
             label_targets = batch[label_list[i]]
             label_preds = self.mlps[i](model_outputs.multimodal_embeddings[:, 0])
             results[label_list[i]] = label_preds

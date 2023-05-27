@@ -1,1 +1,0 @@
-python3 main.py fit --config configs/fhm/lxmert_fhm.yaml --seed_everything 1111
