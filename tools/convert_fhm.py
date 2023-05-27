@@ -33,10 +33,15 @@ def main(github_dir: str, dataset_dir: str):
     dev_unseen_fp = os.path.join(github_dir, "dev_unseen.jsonl")
     test_fp = os.path.join(github_dir, "test_unseen.jsonl")
 
-    train_df = pd.read_json(train_fp, lines=True)
-    dev_seen_df = pd.read_json(dev_seen_fp, lines=True)
-    dev_unseen_df = pd.read_json(dev_unseen_fp, lines=True)
-    test_df = pd.read_json(test_fp, lines=True)
+    train_df = pd.read_json(train_fp, lines=True, convert_axes=False)
+    dev_seen_df = pd.read_json(dev_seen_fp, lines=True, convert_axes=False)
+    dev_unseen_df = pd.read_json(dev_unseen_fp, lines=True, convert_axes=False)
+    test_df = pd.read_json(test_fp, lines=True, convert_axes=False)
+
+    train_df['img'] = train_df['img'].str.replace('img/', '')
+    dev_seen_df['img'] = dev_seen_df['img'].str.replace('img/', '')
+    dev_unseen_df['img'] = dev_unseen_df['img'].str.replace('img/', '')
+    test_df['img'] = test_df['img'].str.replace('img/', '')
 
     # create the new original file
     new_train_fp = os.path.join(dataset_dir, "fhm", "annotations", "train.jsonl")

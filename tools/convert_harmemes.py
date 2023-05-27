@@ -54,14 +54,20 @@ def main(github_dir: str, dataset_dir: str):
     train_df['intensity'] = train_df['labels'].apply(lambda x: INTENSITY_MAP[x[0]])
     train_df['target'] = train_df['labels'].apply(lambda x: TARGET_MAP[x[1]] if len(x) > 1 else -1)
     train_df = train_df.rename({"image": "img"}, axis=1)
+    train_df['id'] = train_df['id'].str.replace('covid_memes_', '')
+    train_df['id'] = train_df["id"].astype(int)
 
     val_df['intensity'] = val_df['labels'].apply(lambda x: INTENSITY_MAP[x[0]])
     val_df['target'] = val_df['labels'].apply(lambda x: TARGET_MAP[x[1]] if len(x) > 1 else -1)
     val_df = val_df.rename({"image": "img"}, axis=1)
+    val_df['id'] = val_df['id'].str.replace('covid_memes_', '')
+    val_df['id'] = val_df["id"].astype(int)
     
     test_df['intensity'] = test_df['labels'].apply(lambda x: INTENSITY_MAP[x[0]])
     test_df['target'] = test_df['labels'].apply(lambda x: TARGET_MAP[x[1]] if len(x) > 1 else -1)
     test_df = test_df.rename({"image": "img"}, axis=1)
+    test_df['id'] = test_df['id'].str.replace('covid_memes_', '')
+    test_df['id'] = test_df["id"].astype(int)
 
     # create the new original file
     new_train_fp = os.path.join(dataset_dir, "harmeme", "annotations", "train.jsonl")

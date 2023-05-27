@@ -62,16 +62,21 @@ def main(github_dir: str, dataset_dir: str):
     dev_unseen_df['pc'] = dev_unseen_df['gold_pc'].apply(lambda x: [PROTECTED_CATEGORY[i] for i in x])
     dev_unseen_df['attack'] = dev_unseen_df['gold_attack'].apply(lambda x: [PROTECTED_ATTACK[i] for i in x])
 
+    train_df['img'] = train_df['img'].str.replace('img/', '')
+    dev_seen_df['img'] = dev_seen_df['img'].str.replace('img/', '')
+    dev_unseen_df['img'] = dev_unseen_df['img'].str.replace('img/', '')
+
     # create the new original file
     new_train_fp = os.path.join(dataset_dir, "fhm_finegrained", "annotations", "train.jsonl")
     new_dev_seen_fp = os.path.join(dataset_dir, "fhm_finegrained", "annotations", "dev_seen.jsonl")
     new_dev_unseen_fp = os.path.join(dataset_dir, "fhm_finegrained", "annotations", "dev_unseen.jsonl")
+    new_test_fp = os.path.join(dataset_dir, "fhm_finegrained", "annotations", "test.jsonl")
     os.makedirs(os.path.dirname(new_train_fp), exist_ok=True)
 
     train_df.to_json(new_train_fp, orient="records", lines=True)
     dev_seen_df.to_json(new_dev_seen_fp, orient="records", lines=True)
     dev_unseen_df.to_json(new_dev_unseen_fp, orient="records", lines=True)
-    test_df.to_json(new_dev_unseen_fp, orient="records", lines=True)
+    test_df.to_json(new_test_fp, orient="records", lines=True)
 
 
 if __name__ == "__main__":
