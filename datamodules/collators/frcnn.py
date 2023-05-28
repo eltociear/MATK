@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 
 def _image_collate_fn(
         batch, 
@@ -58,7 +59,6 @@ def image_collate_fn_fast(
         batch, 
         tokenizer,
         feats_dict,
-        feats_info_dict,
         labels
     ):
     inputs = _image_collate_fn(
@@ -71,10 +71,11 @@ def image_collate_fn_fast(
     visual_feats, visual_pos = [], []
     for item in batch:
         item_id = str(item["id"])
-        visual_feats.append(feats_dict[item_id])
-        visual_pos.append(feats_info_dict[f"{item_id}_info"]["normalized_boxes"])
 
-    inputs['visual_feats'] = visual_feats
-    inputs['visual_pos'] = visual_pos
+        visual_feats.append(feats_dict[item_id]["roi_features"])
+        visual_pos.append(feats_dict[item_id]["normalized_boxes"])
+
+    inputs['visual_feats'] = torch.cat(visual_feats, dim=0)
+    inputs['visual_pos'] = torch.cat(visual_pos, dim=0)
 
     return inputs

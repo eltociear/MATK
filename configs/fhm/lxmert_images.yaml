@@ -10,39 +10,35 @@ trainer:
   callbacks: 
     - class_path: lightning.pytorch.callbacks.ModelCheckpoint
       init_args:
-        dirpath: checkpoints/flava/fhm
-        monitor: label_val_auroc
+        dirpath: checkpoints/lxmert/fhm
+        monitor: val_auroc
         mode: max
         save_top_k: 1
         every_n_epochs: 1
         save_last: True
     - class_path: lightning.pytorch.callbacks.EarlyStopping
       init_args:
-        monitor: label_val_auroc
+        monitor: val_auroc
         patience: 5
         mode: max
-    - class_path: models.flava.MetricCallback
-      init_args: 
-        output_dict: {
-          "label": 2
-        }
   limit_train_batches: 5
   limit_val_batches: 2
-  
+
 model:
-  class_path: models.flava.FlavaClassificationModel
+  class_path: models.lxmert.LxmertClassificationModel
   init_args:
-    model_class_or_path: facebook/flava-full
+    model_class_or_path: unc-nlp/lxmert-base-uncased
+    frcnn_class_or_path: unc-nlp/frcnn-vg-finetuned
     cls_dict: {
       "label": 2
     }
 data:
   class_path: datamodules.VLImagesDataModule
   init_args:
-    model_class_or_path: facebook/flava-full
-    frcnn_class_or_path: None
+    model_class_or_path: unc-nlp/lxmert-base-uncased
+    frcnn_class_or_path: unc-nlp/frcnn-vg-finetuned
+    image_dir: /mnt/sda/mshee/datasets/fhm/images/
     dataset_cls: FHMFGImagesDataset
-    image_dir: /mnt/sda/mshee/datasets/fhm/images/img/
     annotation_filepaths: {
       train: /mnt/sda/mshee/datasets/fhm_finegrained/annotations/train.jsonl,
       validate: /mnt/sda/mshee/datasets/fhm_finegrained/annotations/dev_seen.jsonl,
@@ -50,7 +46,7 @@ data:
       predict: /mnt/sda/mshee/datasets/fhm_finegrained/annotations/dev_seen.jsonl
     }
     shuffle_train: True
+    batch_size: 32
     task: hateful_cls
     labels:
     - label
-    batch_size: 16

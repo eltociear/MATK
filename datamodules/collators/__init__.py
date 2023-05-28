@@ -36,8 +36,7 @@ def get_collator(
                 frcnn_collator_fast, 
                 tokenizer=tokenizer, 
                 labels=labels, 
-                feats_dict=kwargs["feats_dict"],
-                feats_info_dict=kwargs["feats_info_dict"]
+                feats_dict=kwargs["feats_dict"]
             )
         else:
             frcnn_class_or_path = kwargs.pop("frcnn_class_or_path")
