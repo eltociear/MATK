@@ -1,15 +1,11 @@
-import abc
+import os
+import tqdm
 import pickle as pkl
+import numpy as np
 import pandas as pd
 
-from torch.utils.data import Dataset
 from typing import List
-
-class Tasks(abc.ABC):
-
-    @abc.abstractmethod
-    def get_hateful_cls(self, idx: int):
-        pass
+from torch.utils.data import Dataset
 
 class VisionLanguageBase(Dataset):
     def __init__(
@@ -26,12 +22,6 @@ class VisionLanguageBase(Dataset):
 
     def __len__(self):
         return len(self.annotations)
-
-    def __getitem__(self, idx: int):
-        if self.task == "hateful_cls":
-            return self.get_hateful_cls(idx)
-        else:
-            raise NotImplementedError(f"'get_{self.task}' is not defined")
 
 
 class LanguageBase(Dataset):
@@ -64,9 +54,3 @@ class LanguageBase(Dataset):
 
     def __len__(self):
         return len(self.annotations)
-
-    def __getitem__(self, idx: int):
-        if self.task == "hateful_cls":
-            return self.get_hateful_cls(idx)
-        else:
-            raise NotImplementedError(f"'get_{self.task}' is not defined")

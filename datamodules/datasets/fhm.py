@@ -3,7 +3,6 @@ import numpy as np
 from PIL import Image
 from .base import LanguageBase, VisionLanguageBase, Tasks
 
-from typing import List
 
 class VisionLanguageDataset(VisionLanguageBase, Tasks):
     def __init__(
@@ -11,15 +10,14 @@ class VisionLanguageDataset(VisionLanguageBase, Tasks):
         annotation_filepath: str,
         image_dir: str,
         task: str,
-        labels: List[str]
+        **kwargs
     ):
-        super().__init__(annotation_filepath, image_dir, task, labels)
+        super().__init__(annotation_filepath, image_dir, task)
 
     def get_hateful_cls(self, idx):
         img_id = self.annotations.loc[idx, 'img']
         text = self.annotations.loc[idx, 'text']
-        label = 1 if self.annotations.loc[idx, 'gold_hate'] == [
-            "hateful"] else 0
+        label = self.annotations.loc[idx, 'label']
         img_path = self.image_dir + img_id
 
         img = Image.open(img_path)
@@ -42,19 +40,16 @@ class LanguageDataset(LanguageBase, Tasks):
         input_template: str,
         output_template: str,
         label2word: dict,
-        task: str,
-        labels: List[str]
+        task: str
     ):
         super().__init__(annotation_filepath, auxiliary_dicts,
-                         input_template, output_template, label2word, 
-                         task, labels)
+                         input_template, output_template, label2word, task)
 
     def get_hateful_cls(self, idx):
         id = self.annotations.loc[idx, 'id']
         img_id = self.annotations.loc[idx, 'img']
         text = self.annotations.loc[idx, 'text']
-        label = 1 if self.annotations.loc[idx, 'gold_hate'] == [
-            "hateful"] else 0
+        label = self.annotations.loc[idx, 'label']
 
         # Format the input template
         input_kwargs = {"text": text}

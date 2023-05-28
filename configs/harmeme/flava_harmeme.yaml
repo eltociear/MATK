@@ -38,14 +38,16 @@ model:
 data:
   class_path: datamodules.harmeme.HarMemeDataModule
   init_args:
-    dataset_class: HarMemeDataset
-    img_dir: /mnt/sdb/aditi/mmf/data/datasets/memes/defaults/images/
+    image_dir: /mnt/sda/mshee/datasets/fhm/img/
     annotation_filepaths: {
-      train: /mnt/sdb/aditi/mmf/data/datasets/memes/defaults/annotations/train.jsonl,
-      validate: /mnt/sdb/aditi/mmf/data/datasets/memes/defaults/annotations/val.jsonl,
-      test: /mnt/sdb/aditi/mmf/data/datasets/memes/defaults/annotations/test.jsonl,
-      predict: /mnt/sdb/aditi/mmf/data/datasets/memes/defaults/annotations/test.jsonl
+      train: /mnt/sda/mshee/datasets/fhm/annotations/fine_grained/train.jsonl,
+      validate: /mnt/sda/mshee/datasets/fhm/annotations/fine_grained/dev_seen.jsonl,
+      test: /mnt/sda/mshee/datasets/fhm/annotations/fine_grained/dev_seen.jsonl,
+      predict: /mnt/sda/mshee/datasets/fhm/annotations/fine_grained/dev_seen.jsonl
     }
     model_class_or_path: facebook/flava-full
     shuffle_train: True
+    dataset_type: finegrained
+    labels:
+    - label
     batch_size: 32

@@ -50,21 +50,22 @@ def main(github_dir: str, dataset_dir: str):
     dev_unseen_df = pd.read_json(dev_unseen_fp, lines=True)
     test_df = pd.read_json(test_fp, lines=True)
 
+    train_df['img'] = train_df['img'].apply(lambda x: os.path.basename(x))
     train_df['hate'] = train_df['gold_hate'].apply(lambda x: HATEFULNESS[x[0]])
     train_df['pc'] = train_df['gold_pc'].apply(lambda x: [PROTECTED_CATEGORY[i] for i in x])
     train_df['attack'] = train_df['gold_attack'].apply(lambda x: [PROTECTED_ATTACK[i] for i in x])
     
+    dev_seen_df['img'] = dev_seen_df['img'].apply(lambda x: os.path.basename(x))
     dev_seen_df['hate'] = dev_seen_df['gold_hate'].apply(lambda x: HATEFULNESS[x[0]])
     dev_seen_df['pc'] = dev_seen_df['gold_pc'].apply(lambda x: [PROTECTED_CATEGORY[i] for i in x])
     dev_seen_df['attack'] = dev_seen_df['gold_attack'].apply(lambda x: [PROTECTED_ATTACK[i] for i in x])
 
+    dev_unseen_df['img'] = dev_unseen_df['img'].apply(lambda x: os.path.basename(x))
     dev_unseen_df['hate'] = dev_unseen_df['gold_hate'].apply(lambda x: HATEFULNESS[x[0]])
     dev_unseen_df['pc'] = dev_unseen_df['gold_pc'].apply(lambda x: [PROTECTED_CATEGORY[i] for i in x])
     dev_unseen_df['attack'] = dev_unseen_df['gold_attack'].apply(lambda x: [PROTECTED_ATTACK[i] for i in x])
 
-    train_df['img'] = train_df['img'].str.replace('img/', '')
-    dev_seen_df['img'] = dev_seen_df['img'].str.replace('img/', '')
-    dev_unseen_df['img'] = dev_unseen_df['img'].str.replace('img/', '')
+    test_df['img'] = test_df['img'].apply(lambda x: os.path.basename(x))
 
     # modifying id column
     train_df['id'] = range(0, len(train_df))

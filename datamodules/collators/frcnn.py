@@ -1,63 +1,12 @@
 import torch
-
-def preprocess_image(
-        urls, 
-        image_preprocess, 
-        frcnn, 
-        frcnn_cfg
-    ):
-    # run frcnn
-    images, sizes, scales_yx = image_preprocess(urls)
-    output_dict = frcnn(
-        images,
-        sizes,
-        scales_yx=scales_yx,
-        padding="max_detections",
-        max_detections=frcnn_cfg.max_detections,
-        return_tensors="pt",
-    )
-    return output_dict
-
-def image_collate_fn(
-        batch, 
-        tokenizer,
-        frcnn,
-        frcnn_cfg,
-        image_preprocess,
-        labels
-    ):
-    images = []
-    for item in batch:
-        images.append(item["img_path"])
-
-    output_dict = preprocess_image(images, image_preprocess, frcnn, frcnn_cfg)
-    
-    return _image_collate_fn(
-        batch=batch,
-        tokenizer=tokenizer,
-        labels=labels,
-        output_dict=output_dict
-    )
-
-def image_collate_fn_fast(
-        batch, 
-        tokenizer,
-        feats_dict,
-        labels
-    ):
-    return _image_collate_fn(
-        batch=batch,
-        tokenizer=tokenizer,
-        labels=labels,
-        output_dict=feats_dict
-    )
+import numpy as np
 
 def _image_collate_fn(
         batch, 
         tokenizer,
-        labels,
-        output_dict
+        labels
     ):
+
     texts = []
     for item in batch:
         texts.append(item["text"])
@@ -73,13 +22,60 @@ def _image_collate_fn(
             return_tensors="pt"
         )
 
-    inputs['visual_feats'] = output_dict.get("roi_features")
-    inputs['visual_pos'] = output_dict.get("normalized_boxes")
-
     # Get Labels
     for l in labels:
         if l in batch[0].keys():
             labels = [feature[l] for feature in batch]
             inputs[l] = torch.tensor(labels, dtype=torch.int64)
             
+    return inputs
+
+def image_collate_fn(
+        batch, 
+        tokenizer,
+        image_preprocess,
+        labels
+    ):
+    
+    inputs = _image_collate_fn(
+        batch=batch,
+        tokenizer=tokenizer,
+        labels=labels
+    )
+
+    images = []
+    for item in batch:
+        images.append(item["image_path"])
+
+    images, sizes, scales_yx = image_preprocess(images)
+
+    inputs["images"] = images
+    inputs["sizes"] = sizes
+    inputs["scales_yx"] = scales_yx
+    
+    return inputs
+
+def image_collate_fn_fast(
+        batch, 
+        tokenizer,
+        feats_dict,
+        labels
+    ):
+    inputs = _image_collate_fn(
+        batch=batch,
+        tokenizer=tokenizer,
+        labels=labels
+    )
+
+
+    visual_feats, visual_pos = [], []
+    for item in batch:
+        item_id = str(item["id"])
+
+        visual_feats.append(feats_dict[item_id]["roi_features"])
+        visual_pos.append(feats_dict[item_id]["normalized_boxes"])
+
+    inputs['visual_feats'] = torch.cat(visual_feats, dim=0)
+    inputs['visual_pos'] = torch.cat(visual_pos, dim=0)
+
     return inputs

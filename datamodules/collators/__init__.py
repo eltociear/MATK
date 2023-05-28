@@ -30,34 +30,25 @@ def get_collator(
         return partial(flava_collator, processor=processor, labels=labels)
     elif any([x in model_class_or_path for x in bert_tokenizer_models]):
         tokenizer = AutoTokenizer.from_pretrained(model_class_or_path)
-
-        if "feats_filepath" not in kwargs or kwargs["feats_filepath"] is None:
-            frcnn_model_or_path = kwargs.pop("frcnn_model_or_path")
-
-            frcnn_cfg = Config.from_pretrained(frcnn_model_or_path)
-            frcnn = GeneralizedRCNN.from_pretrained(frcnn_model_or_path, config=frcnn_cfg)
-            image_preprocess = Preprocess(frcnn_cfg)
-
+            
+        if "feats_dict" in kwargs:
             return partial(
                 frcnn_collator_fast, 
                 tokenizer=tokenizer, 
-                frcnn_cfg=frcnn_cfg, 
-                frcnn=frcnn, 
-                image_preprocess=image_preprocess,
-                labels=labels
+                labels=labels, 
+                feats_dict=kwargs["feats_dict"]
             )
-            
         else:
-            ## read from the features file 
-            with open(kwargs["feats_filepath"], 'r') as f:
-                # Load the data from the JSON file into a dictionary
-                read_dict = json.load(f)
-            
-            feats_dict = OrderedDict()
-            for k, v in read_dict.items():
-                feats_dict[k] = torch.tensor(v)
-            
-            return partial(frcnn_collator, tokenizer=tokenizer, feats_dict=feats_dict)
+            frcnn_class_or_path = kwargs.pop("frcnn_class_or_path")
+            frcnn_cfg = Config.from_pretrained(frcnn_class_or_path)
+            image_preprocess = Preprocess(frcnn_cfg)
+
+            return partial(
+                frcnn_collator, 
+                tokenizer=tokenizer, 
+                labels=labels,
+                image_preprocess=image_preprocess
+            )
     else:
         tokenizer = AutoTokenizer.from_pretrained(model_class_or_path)
         return partial(text_collate_fn, tokenizer=tokenizer, labels=labels)
