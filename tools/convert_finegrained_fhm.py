@@ -66,6 +66,12 @@ def main(github_dir: str, dataset_dir: str):
     dev_seen_df['img'] = dev_seen_df['img'].str.replace('img/', '')
     dev_unseen_df['img'] = dev_unseen_df['img'].str.replace('img/', '')
 
+    # modifying id column
+    train_df['id'] = range(0, len(train_df))
+    test_df['id'] = range(len(train_df), len(train_df) + len(test_df))
+    dev_unseen_df['id'] = range(len(train_df) + len(test_df), len(train_df) + len(test_df) + len(dev_unseen_df))
+    dev_seen_df['id'] = range(len(train_df) + len(test_df) + len(dev_unseen_df), len(train_df) + len(test_df) + len(dev_seen_df)+len(dev_unseen_df))
+
     # create the new original file
     new_train_fp = os.path.join(dataset_dir, "fhm_finegrained", "annotations", "train.jsonl")
     new_dev_seen_fp = os.path.join(dataset_dir, "fhm_finegrained", "annotations", "dev_seen.jsonl")
