@@ -5,9 +5,6 @@ import pandas as pd
 
 from tqdm import tqdm
 
-def extract_id(filename):
-    return int(filename.split('.')[0])
-
 def copy_folder_with_progress(src_folder, dst_folder):
     total_files = sum([len(files) for _, _, files in os.walk(src_folder)])
     
@@ -50,14 +47,12 @@ def main(github_dir: str, dataset_dir: str):
         "file_name": "img",
         "Text Transcription": "text"
     }, axis=1)
-    train_df['id'] = train_df['img'].apply(extract_id)
 
     test_df = pd.read_csv(test_fp, sep="\t")
     test_df = test_df.rename({
         "file_name": "img",
         "Text Transcription": "text"
     }, axis=1)
-    test_df['id'] = test_df['img'].apply(extract_id)
 
     ## handle the merging of annotations and labels for test
     col_names = ["file_name", "misogynous","shaming","stereotype","objectification","violence"]
@@ -74,7 +69,11 @@ def main(github_dir: str, dataset_dir: str):
         "file_name": "img",
         "Text Transcription": "text"
     }, axis=1)
-    val_df['id'] = val_df['img'].apply(extract_id)
+   
+    # modifying id column
+    train_df['id'] = range(0, len(train_df))
+    test_df['id'] = range(len(train_df), len(train_df) + len(test_df))
+    val_df['id'] = range(len(train_df) + len(test_df), len(train_df) + len(test_df) + len(val_df))
     
     # create the new original file
     new_train_fp = os.path.join(dataset_dir, "mami", "annotations", "train.jsonl")

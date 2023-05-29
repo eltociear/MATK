@@ -65,6 +65,14 @@ def main(github_dir: str, dataset_dir: str):
     dev_unseen_df['pc'] = dev_unseen_df['gold_pc'].apply(lambda x: [PROTECTED_CATEGORY[i] for i in x])
     dev_unseen_df['attack'] = dev_unseen_df['gold_attack'].apply(lambda x: [PROTECTED_ATTACK[i] for i in x])
 
+    test_df['img'] = test_df['img'].apply(lambda x: os.path.basename(x))
+
+    # modifying id column
+    train_df['id'] = range(0, len(train_df))
+    test_df['id'] = range(len(train_df), len(train_df) + len(test_df))
+    dev_unseen_df['id'] = range(len(train_df) + len(test_df), len(train_df) + len(test_df) + len(dev_unseen_df))
+    dev_seen_df['id'] = range(len(train_df) + len(test_df) + len(dev_unseen_df), len(train_df) + len(test_df) + len(dev_seen_df)+len(dev_unseen_df))
+
     # create the new original file
     new_train_fp = os.path.join(dataset_dir, "fhm_finegrained", "annotations", "train.jsonl")
     new_dev_seen_fp = os.path.join(dataset_dir, "fhm_finegrained", "annotations", "dev_seen.jsonl")

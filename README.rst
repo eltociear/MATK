@@ -54,6 +54,12 @@ Supported Datasets
 | MAMI                         | `[arxiv] <https://aclanthology.org/2022.semeval-1.74.pdf>`_     | `[CodaLab] <https://competitions.codalab.org/competitions/34175>`_                                             | 2022 | 10001 |               |
 +------------------------------+-----------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------+------+-------+---------------+
 
+Converting Your Dataset
+~~~~~~~~~~~~~~~~~~~~~~~
+To prepare your dataset for library usage, use the scripts provided under ``tools/conversion``. For example, use:
+.. code-block:: bash
+   python3 convert_mami.py --github-dir /path/to/github_dir --dataset-dir /path/to/dataset_dir
+where ``github-dir`` is the directory containing your raw MAMI dataset and ``dataset-dir`` is the directory that should hold the converted MAMI dataset.
 
 Adding Custom Datasets
 ~~~~~~~~~~~~~~~~~~
