@@ -51,19 +51,22 @@ Supported Datasets
 +------------------------------+-----------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------+------+-------+---------------+
 | HarMeme                      | `[arxiv] <https://aclanthology.org/2021.findings-acl.246.pdf>`_ | `[GitHub] <https://github.com/di-dimitrov/harmeme>`_                                                           | 2021 | 3544  | |green_check| |
 +------------------------------+-----------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------+------+-------+---------------+
+| Harm-C + Harm-P              | `[arxiv] <https://arxiv.org/pdf/2109.05184v2.pdf>`_             | `[GitHub] <https://github.com/LCS2-IIITD/MOMENTA>`_                                                            | 2021 | 3552  | |green_check| |
++------------------------------+-----------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------+------+-------+---------------+
 | MAMI                         | `[arxiv] <https://aclanthology.org/2022.semeval-1.74.pdf>`_     | `[CodaLab] <https://competitions.codalab.org/competitions/34175>`_                                             | 2022 | 10001 |               |
 +------------------------------+-----------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------+------+-------+---------------+
 
 Converting Your Dataset
 ~~~~~~~~~~~~~~~~~~~~~~~
-To prepare your dataset for library usage, use the scripts provided under ``tools/conversion``. For example, use:
-.. code-block:: bash
-   python3 convert_mami.py --github-dir /path/to/github_dir --dataset-dir /path/to/dataset_dir
+To prepare your dataset for library usage, use the scripts provided under ``tools/conversion``. For example, use::
+
+  python3 convert_mami.py --github-dir /path/to/github_dir --dataset-dir /path/to/dataset_dir
+
 where ``github-dir`` is the directory containing your raw MAMI dataset and ``dataset-dir`` is the directory that should hold the converted MAMI dataset.
 
 Adding Custom Datasets
 ~~~~~~~~~~~~~~~~~~
-*Dataset Format.* Each meme dataset is required to have the following fields:
+Each custom meme dataset is required to have the following fields:
 
 * img: image filepath
 * text: superimposed/overlaid text
