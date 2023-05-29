@@ -3,8 +3,7 @@ seed_everything: 1111
 trainer:
   accelerator: gpu
   devices: 1
-  strategy: ddp_find_unused_parameters_true
-  max_epochs: 2
+  max_epochs: 30
   accumulate_grad_batches: 1
   enable_checkpointing: True
   callbacks: 
@@ -21,8 +20,6 @@ trainer:
         monitor: val_auroc
         patience: 5
         mode: max
-  limit_train_batches: 5
-  limit_val_batches: 2
 
 model:
   class_path: models.lxmert.LxmertClassificationModel
