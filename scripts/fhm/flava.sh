@@ -1,1 +1,0 @@
-python3 main.py fit --config configs/fhm/multimodal/flava_binary.yaml --seed_everything 1111

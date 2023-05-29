@@ -22,22 +22,23 @@ trainer:
         patience: 5
         mode: max
 model:
-  class_path: models.bart.BARTCasualModel
+  class_path: models.t5.T5ClassificationModel
   init_args:
-    model_class_or_path: facebook/bart-large
+    model_class_or_path: t5-large
     label2word: {
       0: "no",
       1: "yes"
     }
 data:
-  class_path: datamodules.fhm.LanguageDataModule
+  class_path: datamodules.LanguageDataModule
   init_args:
-    model_class_or_path: facebook/bart-large
+    tokenizer_class_or_path: t5-large
+    dataset_cls: FHMFGTextDataset
     annotation_filepaths: {
-      train: /mnt/sda/datasets/mmf/datasets/hateful_memes/defaults/annotations/fine_grained/train.jsonl,
-      validate: /mnt/sda/datasets/mmf/datasets/hateful_memes/defaults/annotations/fine_grained/dev_seen.jsonl,
-      test: /mnt/sda/datasets/mmf/datasets/hateful_memes/defaults/annotations/fine_grained/dev_seen.jsonl,
-      predict: /mnt/sda/datasets/mmf/datasets/hateful_memes/defaults/annotations/fine_grained/dev_seen.jsonl
+      train: /mnt/sda/datasets/memes/fhm_finegrained/annotations/train.jsonl,
+      validate: /mnt/sda/datasets/memes/fhm_finegrained/annotations/dev_seen.jsonl,
+      test: /mnt/sda/datasets/memes/fhm_finegrained/annotations/dev_seen.jsonl,
+      predict: /mnt/sda/datasets/memes/fhm_finegrained/annotations/dev_seen.jsonl
     }
     auxiliary_dicts: {
       "caption": "/mnt/sda/datasets/memes/fhm/captions/fhm_clean_captions.pkl"
@@ -49,6 +50,7 @@ data:
       1: "yes"
     }
     shuffle_train: True
-    dataset_type: finegrained
     task: hateful_cls
     batch_size: 8
+    labels:
+    - hate

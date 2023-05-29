@@ -1,0 +1,54 @@
+# lightning.pytorch==2.0.0
+seed_everything: 1111
+trainer:
+  accelerator: gpu
+  devices: 1
+  strategy: ddp_find_unused_parameters_true
+  max_epochs: 30
+  accumulate_grad_batches: 1
+  enable_checkpointing: True
+  # callbacks: 
+  #   - class_path: lightning.pytorch.callbacks.ModelCheckpoint
+  #     init_args:
+  #       dirpath: checkpoints/flava/fhm
+  #       monitor: label_val_auroc
+  #       mode: max
+  #       save_top_k: 1
+  #       every_n_epochs: 1
+  #       save_last: True
+  #   - class_path: lightning.pytorch.callbacks.EarlyStopping
+  #     init_args:
+  #       monitor: label_val_auroc
+  #       patience: 5
+  #       mode: max
+  #   - class_path: models.flava.MetricCallback
+  #     init_args: 
+  #       output_dict: {
+  #         "label": 2
+  #       }
+  
+model:
+  class_path: models.flava.FlavaClassificationModel
+  init_args:
+    model_class_or_path: facebook/flava-full
+    cls_dict: {
+      "label": 2
+    }
+data:
+  class_path: datamodules.VLImagesDataModule
+  init_args:
+    tokenizer_class_or_path: facebook/flava-full
+    frcnn_class_or_path: None
+    dataset_cls: FHMFGImagesDataset
+    image_dir: /mnt/sda/datasets/memes/fhm/images/img/
+    annotation_filepaths: {
+      train: /mnt/sda/datasets/memes/fhm_finegrained/annotations/train.jsonl,
+      validate: /mnt/sda/datasets/memes/fhm_finegrained/annotations/dev_seen.jsonl,
+      test: /mnt/sda/datasets/memes/fhm_finegrained/annotations/dev_seen.jsonl,
+      predict: /mnt/sda/datasets/memes/fhm_finegrained/annotations/dev_seen.jsonl
+    }
+    shuffle_train: True
+    task: hateful_cls
+    labels:
+    - label
+    batch_size: 16

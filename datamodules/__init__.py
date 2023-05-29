@@ -10,6 +10,7 @@ from torch.utils.data import DataLoader
 from transformers import AutoTokenizer
 
 # from .fhm import VisionLanguageDataset as FHMChallengeDataset
+from .datasets.fhm_finegrained import LanguageDataset as FHMFGTextDataset
 from .datasets.fhm_finegrained import VLImagesDataset as FHMFGImagesDataset
 from .datasets.fhm_finegrained import VLFeaturesDataset as FHMFGFeaturesDataset
 
@@ -26,7 +27,7 @@ class VLFeaturesDataModule(pl.LightningDataModule):
         self,
         dataset_cls: str,
         annotation_filepaths: dict,
-        model_class_or_path: str,
+        tokenizer_class_or_path: str,
         feats_dir: str,
         batch_size: int,
         shuffle_train: bool,
@@ -43,7 +44,7 @@ class VLFeaturesDataModule(pl.LightningDataModule):
         
         self.feats_dict = self._load_feats_frcnn(feats_dir)
         self.collate_fn = get_collator(
-            model_class_or_path, 
+            tokenizer_class_or_path, 
             labels=labels,
             feats_dict=self.feats_dict
         )
@@ -120,7 +121,7 @@ class VLImagesDataModule(pl.LightningDataModule):
         dataset_cls: str,
         annotation_filepaths: dict,
         image_dir: str,
-        model_class_or_path: str,
+        tokenizer_class_or_path: str,
         frcnn_class_or_path: str,
         batch_size: int,
         shuffle_train: bool,
@@ -137,7 +138,7 @@ class VLImagesDataModule(pl.LightningDataModule):
         self.labels = labels
 
         self.collate_fn = get_collator(
-            model_class_or_path, 
+            tokenizer_class_or_path, 
             labels=labels, 
             frcnn_class_or_path=frcnn_class_or_path
         )
@@ -198,7 +199,7 @@ class LanguageDataModule(pl.LightningDataModule):
         self,
         dataset_cls: str,
         annotation_filepaths: dict,
-        model_class_or_path: str,
+        tokenizer_class_or_path: str,
         auxiliary_dicts: dict,
         input_template: str,
         output_template: str,
@@ -211,7 +212,7 @@ class LanguageDataModule(pl.LightningDataModule):
         super().__init__()
 
         # ensure that word for each label is a single token.
-        tokenizer = AutoTokenizer.from_pretrained(model_class_or_path, use_fast=False)
+        tokenizer = AutoTokenizer.from_pretrained(tokenizer_class_or_path, use_fast=False)
         for word in label2word.values():
             encoded = tokenizer.encode(word, add_special_tokens=False)
             assert len(encoded) == 1
@@ -225,7 +226,7 @@ class LanguageDataModule(pl.LightningDataModule):
         self.label2word = label2word
         self.task = task
         self.labels = labels
-        self.collate_fn = get_collator(model_class_or_path, labels=labels)
+        self.collate_fn = get_collator(tokenizer_class_or_path, labels=labels)
 
         self.dataset_cls = globals()[dataset_cls]
 

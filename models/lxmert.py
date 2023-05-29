@@ -112,7 +112,7 @@ class LxmertClassificationModel(pl.LightningModule):
             label_preds = self.mlps[i](pooled_output)
             label_loss = F.cross_entropy(label_preds, label_targets)
             loss += label_loss
-            self.compute_metrics_and_logs(label_preds, label_targets, label_loss,label_list[i] , 'train')
+            # self.compute_metrics_and_logs(label_preds, label_targets, label_loss,label_list[i] , 'train')
         
         return loss
     

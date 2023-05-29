@@ -30,18 +30,21 @@ class MetricCallback(Callback):
 
 
 class VisualBertClassificationModel(pl.LightningModule):
-    def __init__(self, model_class_or_path, output_dict):
+    def __init__(self, model_class_or_path, cls_dict):
         super().__init__()
         self.save_hyperparameters()
         self.model = VisualBertModel.from_pretrained(model_class_or_path)
 
         # set up classification
-        self.mlps = nn.ModuleList([nn.Sequential(nn.Linear(self.model.config.hidden_size, value)) for key, value in output_dict.items()])
+        self.mlps = nn.ModuleList([
+            nn.Linear(self.model.config.hidden_size, value)
+            for value in cls_dict.values()
+        ])
 
         # set up metric
-        self.metric_dict = output_dict
+        self.cls_dict = cls_dict
 
-        self.metric_callback = MetricCallback(self.metric_dict)
+        self.metric_callback = MetricCallback(self.cls_dict)
 
     def compute_metrics_and_logs(self, preds, labels, loss, prefix, step):
         acc = getattr(self, f"{prefix}_{step}_acc")
@@ -49,6 +52,10 @@ class VisualBertClassificationModel(pl.LightningModule):
 
         acc(preds.argmax(dim=-1), labels)
         auroc(preds, labels)
+
+        print(f"{prefix}_{step}_loss")
+        print(f"{prefix}_{step}_acc")
+        print(f"{prefix}_{step}_auroc")
 
         self.log(f'{prefix}_{step}_loss', loss, prog_bar=True)
         self.log(f'{prefix}_{step}_acc', acc, on_step=True, on_epoch=True, sync_dist=True)
@@ -59,7 +66,6 @@ class VisualBertClassificationModel(pl.LightningModule):
         input_ids = batch['input_ids']
         attention_mask = batch['attention_mask']
         visual_feats = batch['visual_feats']
-        visual_pos = batch['visual_pos']
         token_type_ids = batch['token_type_ids']
 
         outputs = self.model(
@@ -73,10 +79,10 @@ class VisualBertClassificationModel(pl.LightningModule):
         loss = 0
 
         label_list = []
-        for k,v in self.metric_dict.items():
+        for k,v in self.cls_dict.items():
             label_list.append(k)
 
-        for i in range(len(self.metric_dict)):
+        for i in range(len(self.cls_dict)):
             label_targets = batch[label_list[i]]
             label_preds = self.mlps[i](outputs.last_hidden_state[:, 0, :])
             label_loss = F.cross_entropy(label_preds, label_targets)
@@ -91,7 +97,6 @@ class VisualBertClassificationModel(pl.LightningModule):
         input_ids = batch['input_ids']
         attention_mask = batch['attention_mask']
         visual_feats = batch['visual_feats']
-        visual_pos = batch['visual_pos']
         token_type_ids = batch['token_type_ids']
 
         outputs = self.model(
@@ -105,15 +110,15 @@ class VisualBertClassificationModel(pl.LightningModule):
         loss = 0
 
         label_list = []
-        for k,v in self.metric_dict.items():
+        for k,v in self.cls_dict.items():
             label_list.append(k)
 
-        for i in range(len(self.metric_dict)):
+        for i in range(len(self.cls_dict)):
             label_targets = batch[label_list[i]]
             label_preds = self.mlps[i](outputs.last_hidden_state[:, 0, :])
             label_loss = F.cross_entropy(label_preds, label_targets)
             loss += label_loss
-            # self.compute_metrics_and_logs(label_preds, label_targets, label_loss,label_list[i] , 'val')
+            # self.compute_metrics_and_logs(label_preds, label_targets, label_loss, label_list[i] , 'val')
 
         return loss
     
@@ -122,7 +127,6 @@ class VisualBertClassificationModel(pl.LightningModule):
         input_ids = batch['input_ids']
         attention_mask = batch['attention_mask']
         visual_feats = batch['visual_feats']
-        visual_pos = batch['visual_pos']
         token_type_ids = batch['token_type_ids']
 
         outputs = self.model(
@@ -136,10 +140,10 @@ class VisualBertClassificationModel(pl.LightningModule):
         loss = 0
 
         label_list = []
-        for k,v in self.metric_dict.items():
+        for k,v in self.cls_dict.items():
             label_list.append(k)
 
-        for i in range(len(self.metric_dict)):
+        for i in range(len(self.cls_dict)):
             label_targets = batch[label_list[i]]
             label_preds = self.mlps[i](outputs.last_hidden_state[:, 0, :])
             label_loss = F.cross_entropy(label_preds, label_targets)
@@ -167,11 +171,11 @@ class VisualBertClassificationModel(pl.LightningModule):
         loss = 0
 
         label_list = []
-        for k,v in self.metric_dict.items():
+        for k,v in self.cls_dict.items():
             label_list.append(k)
 
         results = {}
-        for i in range(len(self.metric_dict)):
+        for i in range(len(self.cls_dict)):
             label_targets = batch[label_list[i]]
             label_preds = self.mlps[i](outputs.last_hidden_state[:, 0, :])
             results[label_list[i]] = label_preds

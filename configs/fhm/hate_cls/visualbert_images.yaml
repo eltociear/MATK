@@ -4,13 +4,13 @@ trainer:
   accelerator: gpu
   devices: 1
   strategy: ddp_find_unused_parameters_true
-  max_epochs: 2
+  max_epochs: 3
   accumulate_grad_batches: 1
   enable_checkpointing: True
   callbacks: 
     - class_path: lightning.pytorch.callbacks.ModelCheckpoint
       init_args:
-        dirpath: checkpoints/lxmert/fhm
+        dirpath: checkpoints/visualbert/fhm
         monitor: val_auroc
         mode: max
         save_top_k: 1
@@ -21,21 +21,18 @@ trainer:
         monitor: val_auroc
         patience: 5
         mode: max
-  limit_train_batches: 5
-  limit_val_batches: 2
 
 model:
-  class_path: models.lxmert.LxmertClassificationModel
+  class_path: models.visualbert.VisualBertClassificationModel
   init_args:
-    model_class_or_path: unc-nlp/lxmert-base-uncased
-    frcnn_class_or_path: unc-nlp/frcnn-vg-finetuned
+    model_class_or_path: uclanlp/visualbert-vqa-coco-pre
     cls_dict: {
-      "label": 2
+      "labels": 2
     }
 data:
   class_path: datamodules.VLImagesDataModule
   init_args:
-    model_class_or_path: unc-nlp/lxmert-base-uncased
+    tokenizer_class_or_path: bert-base-uncased
     frcnn_class_or_path: unc-nlp/frcnn-vg-finetuned
     image_dir: /mnt/sda/mshee/datasets/fhm/images/
     dataset_cls: FHMFGImagesDataset

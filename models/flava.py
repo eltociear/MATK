@@ -105,7 +105,7 @@ class FlavaClassificationModel(pl.LightningModule):
             label_loss = F.cross_entropy(label_preds, label_targets)
             loss += label_loss
             
-            self.compute_metrics_and_logs(label_preds, label_targets, label_loss,label_list[i] , 'val')
+            # self.compute_metrics_and_logs(label_preds, label_targets, label_loss,label_list[i] , 'val')
         
         return loss
 

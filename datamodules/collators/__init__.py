@@ -19,17 +19,17 @@ from .frcnn import image_collate_fn_fast as frcnn_collator_fast
 from .text import text_collate_fn
 
 def get_collator(
-    model_class_or_path,
+    tokenizer_class_or_path,
     labels,
     **kwargs
 ):
-    bert_tokenizer_models = ["lxmert", "visualbert"]
+    bert_tokenizer_models = ["lxmert", "bert"]
 
-    if "flava" in model_class_or_path:
-        processor = FlavaProcessor.from_pretrained(model_class_or_path)
+    if "flava" in tokenizer_class_or_path:
+        processor = FlavaProcessor.from_pretrained(tokenizer_class_or_path)
         return partial(flava_collator, processor=processor, labels=labels)
-    elif any([x in model_class_or_path for x in bert_tokenizer_models]):
-        tokenizer = AutoTokenizer.from_pretrained(model_class_or_path)
+    elif any([x in tokenizer_class_or_path for x in bert_tokenizer_models]):
+        tokenizer = AutoTokenizer.from_pretrained(tokenizer_class_or_path)
             
         if "feats_dict" in kwargs:
             return partial(
@@ -50,5 +50,5 @@ def get_collator(
                 image_preprocess=image_preprocess
             )
     else:
-        tokenizer = AutoTokenizer.from_pretrained(model_class_or_path)
+        tokenizer = AutoTokenizer.from_pretrained(tokenizer_class_or_path)
         return partial(text_collate_fn, tokenizer=tokenizer, labels=labels)
