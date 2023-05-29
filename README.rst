@@ -56,8 +56,8 @@ Supported Datasets
 
 Converting Your Dataset
 ~~~~~~~~~~~~~~~~~~~~~~~
-To prepare your dataset for library usage, use the scripts provided under ```tools/conversion```. For example, use:
-.. code-block:: python
+To prepare your dataset for library usage, use the scripts provided under ``tools/conversion``. For example, use:
+.. code-block:: bash
    python3 convert_mami.py --github-dir /path/to/github_dir --dataset-dir /path/to/dataset_dir
 where ``github-dir`` is the directory containing your raw MAMI dataset and ``dataset-dir`` is the directory that should hold the converted MAMI dataset.
 
