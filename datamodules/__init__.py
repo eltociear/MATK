@@ -9,10 +9,9 @@ import lightning.pytorch as pl
 from torch.utils.data import DataLoader
 from transformers import AutoTokenizer
 
-# from .fhm import VisionLanguageDataset as FHMChallengeDataset
-from .datasets.fhm_finegrained import LanguageDataset as FHMFGTextDataset
-from .datasets.fhm_finegrained import VLImagesDataset as FHMFGImagesDataset
-from .datasets.fhm_finegrained import VLFeaturesDataset as FHMFGFeaturesDataset
+from .datasets.datasets import LanguageDataset
+from .datasets.datasets import VLImagesDataset
+from .datasets.datasets import VLFeaturesDataset
 
 from datamodules.collators import get_collator
 
@@ -48,7 +47,7 @@ class VLFeaturesDataModule(pl.LightningDataModule):
             labels=labels,
             feats_dict=self.feats_dict
         )
-        self.dataset_cls = globals()[dataset_cls]
+        self.dataset_cls = VLFeaturesDataset
     
     def _load_feats_frcnn(self, feats_dir: str):
         feats_dict = {}
@@ -142,7 +141,7 @@ class VLImagesDataModule(pl.LightningDataModule):
             labels=labels, 
             frcnn_class_or_path=frcnn_class_or_path
         )
-        self.dataset_cls = globals()[dataset_cls]
+        self.dataset_cls = VLImagesDataset
 
     def setup(self, stage: Optional[str] = None):
         if stage == "fit" or stage is None:
@@ -228,7 +227,7 @@ class LanguageDataModule(pl.LightningDataModule):
         self.labels = labels
         self.collate_fn = get_collator(tokenizer_class_or_path, labels=labels)
 
-        self.dataset_cls = globals()[dataset_cls]
+        self.dataset_cls = LanguageDataset
 
     def setup(self, stage: Optional[str] = None):
         if stage == "fit" or stage is None:
