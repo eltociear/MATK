@@ -57,21 +57,24 @@ class VLImagesDataset(VisionLanguageBase):
         id = self.annotations.loc[idx, 'id']
         image_id = self.annotations.loc[idx, 'img']
         text = self.annotations.loc[idx, 'text']
-        label = self.annotations.loc[idx, 'hate']
 
         image_path = os.path.join(self.image_dir, image_id)
         image = Image.open(image_path)
         image = image.resize((224, 224))
         image = image.convert("RGB") if image.mode != "RGB" else image
 
-        return {
+        item = {
             'id': id,
             'image_id': image_id,
             'text': text,
             'image': np.array(image),
-            'image_path': image_path,
-            'label': label
+            'image_path': image_path
         }
+
+        for l in self.labels:
+            item[l] = self.annotations.loc[idx, l]
+
+        return item
 
 
 class LanguageDataset(LanguageBase):
@@ -99,16 +102,20 @@ class LanguageDataset(LanguageBase):
         id = self.annotations.loc[idx, 'id']
         image_id = self.annotations.loc[idx, 'img']
         text = self.annotations.loc[idx, 'text']
-        label = self.annotations.loc[idx, 'hate']
 
         # Format the input template
         input_kwargs = {"text": text}
         for key, data in self.auxiliary_data.items():
             input_kwargs[key] = data[f"{id:05}"]
 
-        return {
+        item = {
             'id': id,
             'image_id': image_id,
-            'text': self.input_template.format(**input_kwargs),
-            'label': self.output_template.format(label=self.label2word[label])
+            'text': self.input_template.format(**input_kwargs)
         }
+
+        for l in self.labels:
+            label = self.annotations.loc[idx, l]
+            item[l] = self.output_template.format(label=self.label2word[label])
+            
+        return item

@@ -3,8 +3,7 @@ seed_everything: 1111
 trainer:
   accelerator: gpu
   devices: 1
-  strategy: ddp_find_unused_parameters_true
-  max_epochs: 50
+  max_epochs: 30
   accumulate_grad_batches: 1
   enable_checkpointing: True
   callbacks: 
@@ -25,6 +24,8 @@ model:
   class_path: models.bart.BARTCasualModel
   init_args:
     model_class_or_path: facebook/bart-large
+    labels:
+    - hate
     label2word: {
       0: "no",
       1: "yes"
