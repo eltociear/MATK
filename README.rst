@@ -58,7 +58,7 @@ Supported Datasets
 
 Converting Your Dataset
 ~~~~~~~~~~~~~~~~~~~~~~~
-To prepare your dataset for library usage, use the scripts provided under ``tools/conversion``. For example, use::
+To prepare your local copy of the any of the above datasets for library usage, use the scripts provided under ``tools/conversion``. For example, use::
 
   python3 convert_mami.py --github-dir /path/to/github_dir --dataset-dir /path/to/dataset_dir
 
@@ -71,6 +71,19 @@ Each custom meme dataset is required to have the following fields:
 * img: image filepath
 * text: superimposed/overlaid text
 * {labels}: the label name changes based on the dataset (i.e. hateful, offensive)
+
+Make sure your custom dataset folder's tree looks similar to the following:
+
+.. code-block:: text
+
+   dataset_dir
+   ├── annotations
+   │   ├── test.jsonl
+   │   ├── train.jsonl
+   │   └── val.jsonl
+   └── images
+      ├── 1.jpg
+      └── 2.jpg
 
 
 **************************
@@ -99,6 +112,25 @@ Supported Vision-Language Models
 +------------+---------------------------------------------------+----------------------------------------------------------------------------------------------------------------+------+
 | FLAVA      | `[arxiv] <https://arxiv.org/pdf/2112.04482.pdf>`_ | `[HuggingFace] <https://huggingface.co/docs/transformers/model_doc/flava#transformers.FlavaModel>`_            | 2021 |
 +------------+---------------------------------------------------+----------------------------------------------------------------------------------------------------------------+------+
+
+Model configuration
+~~~~~~~~~~~~~~~~~~~
+Once your dataset is converted, follow these steps to configure the desired model for usage:
+#. Go to ``configs`` and pick the relevant dataset folder.
+#. Choose the YAML file relevant to the desired model.
+#. Look for the ``annotation_filepaths`` key and modify the values for ``train``,``test``,``predict``,``validation`` based on your ``dataset_dir``.
+#. (Optional) If you wish to modify any of the training hyperparameters, look for the ``trainer`` key and modify the values as required.
+
+
+Model Usage
+~~~~~~~~~~~
+Once you have created your model configuration, follow these steps to use the configured model:
+#. Go to ``scripts`` and pick the relevant dataset folder.
+#. Pick ``test`` or ``train`` based on your requirement and locate the script for your model.
+
+For example, if you wish to train FLAVA on FHM dataset, run the following command::
+
+  bash scripts/fhm/train/flava.sh
 
 
 Project Status
