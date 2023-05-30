@@ -28,7 +28,8 @@ model:
     - intensity
     label2word: {
       0: "no",
-      1: "yes"
+      1: "yes",
+      2: "yes"
     }
 data:
   class_path: datamodules.LanguageDataModule
@@ -41,11 +42,13 @@ data:
       test: /mnt/sda/datasets/memes/harmemes/annotations/val.jsonl,
       predict: /mnt/sda/datasets/memes/harmemes/annotations/val.jsonl
     }
+    auxiliary_dicts: {}
     input_template: "question: is it hateful? context: {text}"
     output_template: "{label}</s>"
     label2word: {
       0: "no",
-      1: "yes"
+      1: "yes",
+      2: "yes"
     }
     shuffle_train: True
     batch_size: 8
