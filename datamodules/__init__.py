@@ -30,7 +30,6 @@ class VLFeaturesDataModule(pl.LightningDataModule):
         feats_dir: str,
         batch_size: int,
         shuffle_train: bool,
-        task: str,
         labels: List[str]
     ):
         super().__init__()
@@ -38,7 +37,6 @@ class VLFeaturesDataModule(pl.LightningDataModule):
         self.annotation_filepaths = annotation_filepaths
         self.batch_size = batch_size
         self.shuffle_train = shuffle_train
-        self.task = task
         self.labels = labels
         
         self.feats_dict = self._load_feats_frcnn(feats_dir)
@@ -73,13 +71,11 @@ class VLFeaturesDataModule(pl.LightningDataModule):
         if stage == "fit" or stage is None:
             self.train = self.dataset_cls(
                 annotation_filepath=self.annotation_filepaths["train"],
-                task=self.task,
                 labels=self.labels
             )
 
             self.validate = self.dataset_cls(
                 annotation_filepath=self.annotation_filepaths["validate"],
-                task=self.task,
                 labels=self.labels
             )
 
@@ -87,14 +83,12 @@ class VLFeaturesDataModule(pl.LightningDataModule):
         if stage == "test" or stage is None:
             self.test = self.dataset_cls(
                 annotation_filepath=self.annotation_filepaths["test"],
-                task=self.task,
                 labels=self.labels
             )
 
         if stage == "predict" or stage is None:
             self.predict = self.dataset_cls(
                 annotation_filepath=self.annotation_filepaths["predict"],
-                task=self.task,
                 labels=self.labels
             )
 
@@ -124,7 +118,6 @@ class VLImagesDataModule(pl.LightningDataModule):
         frcnn_class_or_path: str,
         batch_size: int,
         shuffle_train: bool,
-        task: str,
         labels: List[str]
     ):
         super().__init__()
@@ -133,7 +126,6 @@ class VLImagesDataModule(pl.LightningDataModule):
         self.image_dir = image_dir
         self.batch_size = batch_size
         self.shuffle_train = shuffle_train
-        self.task = task
         self.labels = labels
 
         self.collate_fn = get_collator(
@@ -148,14 +140,12 @@ class VLImagesDataModule(pl.LightningDataModule):
             self.train = self.dataset_cls(
                 annotation_filepath=self.annotation_filepaths["train"],
                 image_dir=self.image_dir,
-                task=self.task,
                 labels=self.labels
             )
 
             self.validate = self.dataset_cls(
                 annotation_filepath=self.annotation_filepaths["validate"],
                 image_dir=self.image_dir,
-                task=self.task,
                 labels=self.labels
             )
 
@@ -164,7 +154,6 @@ class VLImagesDataModule(pl.LightningDataModule):
             self.test = self.dataset_cls(
                 annotation_filepath=self.annotation_filepaths["test"],
                 image_dir=self.image_dir,
-                task=self.task,
                 labels=self.labels
             )
 
@@ -172,7 +161,6 @@ class VLImagesDataModule(pl.LightningDataModule):
             self.predict = self.dataset_cls(
                 annotation_filepath=self.annotation_filepaths["predict"],
                 image_dir=self.image_dir,
-                task=self.task,
                 labels=self.labels
             )
 
@@ -205,7 +193,6 @@ class LanguageDataModule(pl.LightningDataModule):
         label2word: dict,
         batch_size: int,
         shuffle_train: bool,
-        task: str,
         labels: List[str]
     ):
         super().__init__()
@@ -223,7 +210,6 @@ class LanguageDataModule(pl.LightningDataModule):
         self.input_template = input_template
         self.output_template = output_template
         self.label2word = label2word
-        self.task = task
         self.labels = labels
         self.collate_fn = get_collator(tokenizer_class_or_path, labels=labels)
 
@@ -237,7 +223,6 @@ class LanguageDataModule(pl.LightningDataModule):
                 input_template=self.input_template,
                 output_template=self.output_template,
                 label2word=self.label2word,
-                task=self.task,
                 labels=self.labels
             )
 
@@ -247,7 +232,6 @@ class LanguageDataModule(pl.LightningDataModule):
                 input_template=self.input_template,
                 output_template=self.output_template,
                 label2word=self.label2word,
-                task=self.task,
                 labels=self.labels
             )
 
@@ -259,7 +243,6 @@ class LanguageDataModule(pl.LightningDataModule):
                 input_template=self.input_template,
                 output_template=self.output_template,
                 label2word=self.label2word,
-                task=self.task,
                 labels=self.labels
             )
 
@@ -270,7 +253,6 @@ class LanguageDataModule(pl.LightningDataModule):
                 input_template=self.input_template,
                 output_template=self.output_template,
                 label2word=self.label2word,
-                task=self.task,
                 labels=self.labels
             )
 
