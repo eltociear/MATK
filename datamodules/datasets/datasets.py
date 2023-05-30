@@ -10,18 +10,11 @@ class VLFeaturesDataset(VisionLanguageBase):
     def __init__(
         self,
         annotation_filepath: str,
-        task: str,
         labels: List[str]
     ):
-        super().__init__(annotation_filepath, None, task, labels)
+        super().__init__(annotation_filepath, None, labels)
 
     def __getitem__(self, idx: int):
-        if self.task == "hateful_cls":
-            return self.get_hateful_cls(idx)
-        else:
-            raise NotImplementedError(f"'get_{self.task}' is not defined")
-
-    def get_hateful_cls(self, idx):
         id = self.annotations.loc[idx, 'id']
         image_id = self.annotations.loc[idx, 'img']
         text = self.annotations.loc[idx, 'text']
@@ -42,18 +35,11 @@ class VLImagesDataset(VisionLanguageBase):
         self,
         annotation_filepath: str,
         image_dir: str,
-        task: str,
         labels: List[str]
     ):
-        super().__init__(annotation_filepath, image_dir, task, labels)
+        super().__init__(annotation_filepath, image_dir, labels)
 
     def __getitem__(self, idx: int):
-        if self.task == "hateful_cls":
-            return self.get_hateful_cls(idx)
-        else:
-            raise NotImplementedError(f"'get_{self.task}' is not defined")
-
-    def get_hateful_cls(self, idx):
         id = self.annotations.loc[idx, 'id']
         image_id = self.annotations.loc[idx, 'img']
         text = self.annotations.loc[idx, 'text']
@@ -85,20 +71,13 @@ class LanguageDataset(LanguageBase):
         input_template: str,
         output_template: str,
         label2word: dict,
-        task: str,
         labels: List[str]
     ):
         super().__init__(annotation_filepath, auxiliary_dicts,
                          input_template, output_template, label2word, 
-                         task, labels)
+                         labels)
 
     def __getitem__(self, idx: int):
-        if self.task == "hateful_cls":
-            return self.get_hateful_cls(idx)
-        else:
-            raise NotImplementedError(f"'get_{self.task}' is not defined")
-
-    def get_hateful_cls(self, idx):
         id = self.annotations.loc[idx, 'id']
         image_id = self.annotations.loc[idx, 'img']
         text = self.annotations.loc[idx, 'text']
@@ -117,5 +96,5 @@ class LanguageDataset(LanguageBase):
         for l in self.labels:
             label = self.annotations.loc[idx, l]
             item[l] = self.output_template.format(label=self.label2word[label])
-            
+
         return item

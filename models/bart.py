@@ -16,16 +16,20 @@ class BARTCasualModel(pl.LightningModule):
         self.model = BartForConditionalGeneration.from_pretrained(model_class_or_path)
         self.tokenizer = AutoTokenizer.from_pretrained(model_class_or_path, use_fast=False)
 
-        self.val_acc = torchmetrics.Accuracy(task="multiclass", num_classes=len(label2word))
-        self.val_auroc = torchmetrics.AUROC(task="multiclass", num_classes=len(label2word))
+        num_unique_words = len(set(label2word.values()))
+        self.val_acc = torchmetrics.Accuracy(task="multiclass", num_classes=num_unique_words)
+        self.val_auroc = torchmetrics.AUROC(task="multiclass", num_classes=num_unique_words)
 
-        self.test_acc = torchmetrics.Accuracy(task="multiclass", num_classes=len(label2word))
-        self.test_auroc = torchmetrics.AUROC(task="multiclass", num_classes=len(label2word))
+        self.test_acc = torchmetrics.Accuracy(task="multiclass", num_classes=num_unique_words)
+        self.test_auroc = torchmetrics.AUROC(task="multiclass", num_classes=num_unique_words)
 
         self.token2label = {}
         for label, word in label2word.items():
             token = self.tokenizer.encode(word, add_special_tokens=False)[0]
             self.token2label[token] = label
+
+        print(label2word)
+        print(self.token2label)
     
     def training_step(self, batch, batch_idx):
         # TODO: Address this for multi-task learning

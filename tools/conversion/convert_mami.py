@@ -29,16 +29,20 @@ def main(github_dir: str, dataset_dir: str):
     val_fp = os.path.join(github_dir, "trial", "Users", "fersiniel", "Desktop", "MAMI - TO LABEL", "TRIAL DATASET", "trial.csv")
     
     ## copy images
-    train_img_dir = os.path.join(github_dir, "training", "TRAINING")
-    test_img_dir = os.path.join(github_dir, "test", "test")
-    val_img_dir = os.path.join(github_dir, "trial", "Users", "fersiniel", "Desktop", "MAMI - TO LABEL", "TRIAL DATASET")
+    image_train_dir = os.path.join(github_dir, "training", "TRAINING")
+    image_val_dir = os.path.join(github_dir, "trial", "Users", "fersiniel", "Desktop", "MAMI - TO LABEL", "TRIAL DATASET")
+    image_test_dir = os.path.join(github_dir, "test", "test")
 
-    img_out_dir = os.path.join(dataset_dir, "mami", "images")
-    os.makedirs(img_out_dir, exist_ok=True)
+    dataset_train_dir = os.path.join(dataset_dir, "mami", "images", "train")
+    dataset_val_dir = os.path.join(dataset_dir, "mami", "images", "validate")
+    dataset_test_dir = os.path.join(dataset_dir, "mami", "images", "test")
+    os.makedirs(dataset_train_dir, exist_ok=True)
+    os.makedirs(dataset_val_dir, exist_ok=True)
+    os.makedirs(dataset_dir, exist_ok=True)
 
-    copy_folder_with_progress(train_img_dir, img_out_dir)
-    copy_folder_with_progress(test_img_dir, img_out_dir)
-    copy_folder_with_progress(val_img_dir, img_out_dir)
+    copy_folder_with_progress(image_train_dir, dataset_train_dir)
+    copy_folder_with_progress(image_val_dir, dataset_val_dir)
+    copy_folder_with_progress(image_test_dir, dataset_test_dir)
 
     # derive misogynous, shaming, stereotype, objectification and violence
 

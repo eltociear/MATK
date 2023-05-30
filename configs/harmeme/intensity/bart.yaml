@@ -21,37 +21,35 @@ trainer:
         patience: 5
         mode: max
 model:
-  class_path: models.t5.T5ClassificationModel
+  class_path: models.bart.BARTCasualModel
   init_args:
-    model_class_or_path: t5-large
+    model_class_or_path: facebook/bart-large
     labels:
-    - hate
+    - intensity
     label2word: {
       0: "no",
-      1: "yes"
+      1: "yes",
+      2: "yes"
     }
 data:
   class_path: datamodules.LanguageDataModule
   init_args:
-    tokenizer_class_or_path: t5-large
-    dataset_cls: FHMFGTextDataset
+    tokenizer_class_or_path: facebook/bart-large
     annotation_filepaths: {
-      train: /mnt/sda/datasets/memes/fhm_finegrained/annotations/train.jsonl,
-      validate: /mnt/sda/datasets/memes/fhm_finegrained/annotations/dev_seen.jsonl,
-      test: /mnt/sda/datasets/memes/fhm_finegrained/annotations/dev_seen.jsonl,
-      predict: /mnt/sda/datasets/memes/fhm_finegrained/annotations/dev_seen.jsonl
+      train: /mnt/sda/datasets/memes/harmemes/annotations/train.jsonl,
+      validate: /mnt/sda/datasets/memes/harmemes/annotations/validate.jsonl,
+      test: /mnt/sda/datasets/memes/harmemes/annotations/validate.jsonl,
+      predict: /mnt/sda/datasets/memes/harmemes/annotations/validate.jsonl
     }
-    auxiliary_dicts: {
-      "caption": "/mnt/sda/datasets/memes/fhm/captions/fhm_clean_captions.pkl"
-    }
-    input_template: "question: is it hateful? context: {text} {caption}"
+    auxiliary_dicts: {}
+    input_template: "question: is it hateful? context: {text}"
     output_template: "{label}</s>"
     label2word: {
       0: "no",
-      1: "yes"
+      1: "yes",
+      2: "yes"
     }
     shuffle_train: True
-    task: hateful_cls
     batch_size: 8
     labels:
-    - hate
+    - intensity
