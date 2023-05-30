@@ -35,7 +35,6 @@ data:
   class_path: datamodules.LanguageDataModule
   init_args:
     tokenizer_class_or_path: t5-large
-    dataset_cls: FHMFGTextDataset
     annotation_filepaths: {
       train: /mnt/sda/datasets/memes/harmemes/annotations/train.jsonl,
       validate: /mnt/sda/datasets/memes/harmemes/annotations/val.jsonl,

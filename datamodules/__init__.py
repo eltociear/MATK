@@ -24,7 +24,6 @@ class VLFeaturesDataModule(pl.LightningDataModule):
 
     def __init__(
         self,
-        dataset_cls: str,
         annotation_filepaths: dict,
         tokenizer_class_or_path: str,
         feats_dir: str,
@@ -111,7 +110,6 @@ class VLImagesDataModule(pl.LightningDataModule):
 
     def __init__(
         self,
-        dataset_cls: str,
         annotation_filepaths: dict,
         image_dir: str,
         tokenizer_class_or_path: str,
@@ -184,7 +182,6 @@ class LanguageDataModule(pl.LightningDataModule):
 
     def __init__(
         self,
-        dataset_cls: str,
         annotation_filepaths: dict,
         tokenizer_class_or_path: str,
         auxiliary_dicts: dict,

@@ -34,7 +34,6 @@ data:
   class_path: datamodules.LanguageDataModule
   init_args:
     tokenizer_class_or_path: t5-large
-    dataset_cls: FHMFGTextDataset
     annotation_filepaths: {
       train: /mnt/sda/datasets/memes/fhm_finegrained/annotations/train.jsonl,
       validate: /mnt/sda/datasets/memes/fhm_finegrained/annotations/dev_seen.jsonl,
@@ -51,7 +50,6 @@ data:
       1: "yes"
     }
     shuffle_train: True
-    task: hateful_cls
     batch_size: 8
     labels:
     - hate

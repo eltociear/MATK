@@ -39,7 +39,6 @@ data:
   init_args:
     tokenizer_class_or_path: unc-nlp/lxmert-base-uncased
     feats_dir: /mnt/sda/datasets/memes/harmemes/features/unc-nlp/frcnn-vg-finetuned/
-    dataset_cls: FHMFGFeaturesDataset
     annotation_filepaths: {
       train: /mnt/sda/datasets/memes/harmemes/annotations/train.jsonl,
       validate: /mnt/sda/datasets/memes/harmemes/annotations/val.jsonl,

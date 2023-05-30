@@ -28,8 +28,6 @@ class VLFeaturesDataset(VisionLanguageBase):
         for l in self.labels:
             item[l] = self.annotations.loc[idx, l]
 
-        print(item[l])
-
         return item
 
 class VLImagesDataset(VisionLanguageBase):

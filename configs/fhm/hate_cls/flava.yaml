@@ -31,14 +31,13 @@ model:
   init_args:
     model_class_or_path: facebook/flava-full
     cls_dict: {
-      "label": 2
+      "hate": 2
     }
 data:
   class_path: datamodules.VLImagesDataModule
   init_args:
     tokenizer_class_or_path: facebook/flava-full
     frcnn_class_or_path: None
-    dataset_cls: FHMFGImagesDataset
     image_dir: /mnt/sda/datasets/memes/fhm/images/img/
     annotation_filepaths: {
       train: /mnt/sda/datasets/memes/fhm_finegrained/annotations/train.jsonl,
@@ -47,7 +46,6 @@ data:
       predict: /mnt/sda/datasets/memes/fhm_finegrained/annotations/dev_seen.jsonl
     }
     shuffle_train: True
-    task: hateful_cls
     labels:
-    - label
+    - hate
     batch_size: 16
