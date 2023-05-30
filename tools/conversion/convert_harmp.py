@@ -70,7 +70,7 @@ def main(github_dir: str, dataset_dir: str):
 
     # create the new original file
     new_train_fp = os.path.join(dataset_dir, "harmp", "annotations", "train.jsonl")
-    new_val_fp = os.path.join(dataset_dir, "harmp", "annotations", "val.jsonl")
+    new_val_fp = os.path.join(dataset_dir, "harmp", "annotations", "validate.jsonl")
     new_test_fp = os.path.join(dataset_dir, "harmp", "annotations", "test.jsonl")
     os.makedirs(os.path.dirname(new_train_fp), exist_ok=True)
 

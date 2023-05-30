@@ -37,9 +37,9 @@ data:
     tokenizer_class_or_path: t5-large
     annotation_filepaths: {
       train: /mnt/sda/datasets/memes/harmemes/annotations/train.jsonl,
-      validate: /mnt/sda/datasets/memes/harmemes/annotations/val.jsonl,
-      test: /mnt/sda/datasets/memes/harmemes/annotations/val.jsonl,
-      predict: /mnt/sda/datasets/memes/harmemes/annotations/val.jsonl
+      validate: /mnt/sda/datasets/memes/harmemes/annotations/validate.jsonl,
+      test: /mnt/sda/datasets/memes/harmemes/annotations/validate.jsonl,
+      predict: /mnt/sda/datasets/memes/harmemes/annotations/validate.jsonl
     }
     auxiliary_dicts: {}
     input_template: "question: is it hateful? context: {text}"

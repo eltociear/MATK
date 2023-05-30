@@ -41,9 +41,9 @@ data:
     image_dir: /mnt/sda/datasets/memes/harmemes/images/
     annotation_filepaths: {
       train: /mnt/sda/datasets/memes/harmemes/annotations/train.jsonl,
-      validate: /mnt/sda/datasets/memes/harmemes/annotations/val.jsonl,
-      test: /mnt/sda/datasets/memes/harmemes/annotations/val.jsonl,
-      predict: /mnt/sda/datasets/memes/harmemes/annotations/val.jsonl
+      validate: /mnt/sda/datasets/memes/harmemes/annotations/validate.jsonl,
+      test: /mnt/sda/datasets/memes/harmemes/annotations/validate.jsonl,
+      predict: /mnt/sda/datasets/memes/harmemes/annotations/validate.jsonl
     }
     shuffle_train: True
     labels:

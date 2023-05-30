@@ -9,7 +9,7 @@ trainer:
   # callbacks: 
   #   - class_path: lightning.pytorch.callbacks.ModelCheckpoint
   #     init_args:
-  #       dirpath: checkpoints/flava/harmeme
+  #       dirpath: checkpoints/flava/mami
   #       monitor: val_auroc
   #       mode: max
   #       save_top_k: 1
@@ -23,29 +23,45 @@ trainer:
   #   - class_path: models.flava.MetricCallback
   #     init_args: 
   #       output_dict: {
-  #         "intensity": 3,
-  #         "target": 4
+  #         "shaming": 2,
+  #         "misogynous": 2,
+  #         "objectification": 2,
+  #         "violence": 2,
+  #         "stereotype": 2
   #       }
 model:
   class_path: models.flava.FlavaClassificationModel
   init_args:
     model_class_or_path: facebook/flava-full
     cls_dict: {
-      "intensity": 3
+      "shaming": 2,
+      "misogynous": 2,
+      "objectification": 2,
+      "violence": 2,
+      "stereotype": 2
     }
 data:
   class_path: datamodules.VLImagesDataModule
   init_args:
     tokenizer_class_or_path: facebook/flava-full
     frcnn_class_or_path: None
-    image_dir: /mnt/sda/datasets/memes/harmemes/images/
+    image_dir: {
+      train: /mnt/sda/datasets/memes/mami/images/img/train/,
+      validate: /mnt/sda/datasets/memes/mami/images/img/val/,
+      test: /mnt/sda/datasets/memes/mami/images/img/val/,
+      predict: /mnt/sda/datasets/memes/mami/images/img/val/
+    }
     annotation_filepaths: {
-      train: /mnt/sda/datasets/memes/harmemes/annotations/train.jsonl,
-      validate: /mnt/sda/datasets/memes/harmemes/annotations/validate.jsonl,
-      test: /mnt/sda/datasets/memes/harmemes/annotations/validate.jsonl,
-      predict: /mnt/sda/datasets/memes/harmemes/annotations/validate.jsonl
+      train: /mnt/sda/datasets/memes/mami/annotations/train.jsonl,
+      validate: /mnt/sda/datasets/memes/mami/annotations/val.jsonl,
+      test: /mnt/sda/datasets/memes/mami/annotations/val.jsonl,
+      predict: /mnt/sda/datasets/memes/mami/annotations/val.jsonl
     }
     shuffle_train: True
     labels:
-    - intensity
+    - shaming
+    - misogynous
+    - objectification
+    - violence
+    - stereotype
     batch_size: 16
