@@ -81,8 +81,8 @@ def main(github_dir: str, dataset_dir: str):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser("Converting FHM's finegrained dataset to specified format")
-    parser.add_argument("--github-dir", help="Folder path to the Facebook's Hateful Memes Fine-Grain directory")
-    parser.add_argument("--dataset-dir", help="Folder path to the dataset directory")
+    parser.add_argument("--dataset-dir", help="Folder path to the Harm-P directory")
+    parser.add_argument("--processed-dir", help="Folder path to store the processed dataset")
     args = parser.parse_args()
 
     main(

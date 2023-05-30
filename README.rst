@@ -60,9 +60,26 @@ Converting Your Dataset
 ~~~~~~~~~~~~~~~~~~~~~~~
 To prepare your local copy of the any of the above datasets for library usage, use the scripts provided under ``tools/conversion``. For example, use::
 
-  python3 convert_mami.py --github-dir /path/to/github_dir --dataset-dir /path/to/dataset_dir
+  python3 convert_mami.py --dataset-dir /path/to/github_dir --processed-dir /path/to/dataset_dir
 
 where ``github-dir`` is the directory containing your raw MAMI dataset and ``dataset-dir`` is the directory that should hold the converted MAMI dataset.
+
++------------------------------+----------------------------+
+| Dataset                      | Script                     |
++==============================+============================+
+| Facebook Hateful Memes (FHM) | convert_fhm.py             |
++------------------------------+----------------------------+
+| Fine grained FHM             | convert_finegrained_fhm.py |
++------------------------------+----------------------------+
+| HarMeme                      | convert_harmemes.py        |
++------------------------------+----------------------------+
+| Harm-C                       | convert_harmc.py           |
++------------------------------+----------------------------+
+| Harm-P                       | convert_harmp.py           |
++------------------------------+----------------------------+
+| MAMI                         | convert_mami.py            |
++------------------------------+----------------------------+
+
 
 Adding Custom Datasets
 ~~~~~~~~~~~~~~~~~~
