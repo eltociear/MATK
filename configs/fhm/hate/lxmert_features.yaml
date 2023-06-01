@@ -37,7 +37,12 @@ data:
   class_path: datamodules.VLFeaturesDataModule
   init_args:
     tokenizer_class_or_path: unc-nlp/lxmert-base-uncased
-    feats_dir: /mnt/sda/datasets/memes/fhm/features/unc-nlp/frcnn-vg-finetuned/
+    feats_dirs: {
+      train: /mnt/sda/datasets/memes/fhm/features/unc-nlp/frcnn-vg-finetuned/,
+      validate: /mnt/sda/datasets/memes/fhm/features/unc-nlp/frcnn-vg-finetuned/,
+      test: /mnt/sda/datasets/memes/fhm/features/unc-nlp/frcnn-vg-finetuned/,
+      predict: /mnt/sda/datasets/memes/fhm/features/unc-nlp/frcnn-vg-finetuned/
+    }
     annotation_filepaths: {
       train: /mnt/sda/datasets/memes/fhm_finegrained/annotations/train.jsonl,
       validate: /mnt/sda/datasets/memes/fhm_finegrained/annotations/dev_seen.jsonl,

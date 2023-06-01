@@ -48,9 +48,6 @@ class VLFeaturesDataModule(pl.LightningDataModule):
             labels=labels,
         )
 
-        print(11016 in self.feats_dict["train"])
-        print("11016" in self.feats_dict["train"])
-
         self.dataset_cls = VLFeaturesDataset
     
     def _load_feats_frcnn(self, feats_dirs: str, key: str):
@@ -64,9 +61,6 @@ class VLFeaturesDataModule(pl.LightningDataModule):
             filepath = os.path.join(feats_dirs[key], filename)
             
             filename, _ = os.path.splitext(filename)
-            # FHM workaround
-            if filename[0] == "0":
-                filename = filename[1:]
 
             with open(filepath, "rb") as f:
                 feats_dict[filename] = pkl.load(f)

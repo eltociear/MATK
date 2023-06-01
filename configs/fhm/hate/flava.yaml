@@ -38,7 +38,12 @@ data:
   init_args:
     tokenizer_class_or_path: facebook/flava-full
     frcnn_class_or_path: None
-    image_dir: /mnt/sda/datasets/memes/fhm/images/img/
+    image_dirs: {
+      train: /mnt/sda/datasets/memes/fhm/images/img/,
+      validate: /mnt/sda/datasets/memes/fhm/images/img/,
+      test: /mnt/sda/datasets/memes/fhm/images/img/,
+      predict: /mnt/sda/datasets/memes/fhm/images/img/
+    }
     annotation_filepaths: {
       train: /mnt/sda/datasets/memes/fhm_finegrained/annotations/train.jsonl,
       validate: /mnt/sda/datasets/memes/fhm_finegrained/annotations/dev_seen.jsonl,

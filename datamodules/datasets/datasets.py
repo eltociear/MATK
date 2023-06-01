@@ -15,7 +15,6 @@ class VLFeaturesDataset(VisionLanguageBase):
     ):
         super().__init__(annotation_filepath, None, labels)
         self.feats_dict = feats_dict
-        print(feats_dict.keys())
 
     def __getitem__(self, idx: int):
         text = self.annotations.loc[idx, 'text']
