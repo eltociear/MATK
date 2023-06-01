@@ -6,25 +6,20 @@ trainer:
   max_epochs: 30
   accumulate_grad_batches: 1
   enable_checkpointing: True
-  # callbacks: 
-  #   - class_path: lightning.pytorch.callbacks.ModelCheckpoint
-  #     init_args:
-  #       dirpath: checkpoints/flava/fhm
-  #       monitor: label_val_auroc
-  #       mode: max
-  #       save_top_k: 1
-  #       every_n_epochs: 1
-  #       save_last: True
-  #   - class_path: lightning.pytorch.callbacks.EarlyStopping
-  #     init_args:
-  #       monitor: label_val_auroc
-  #       patience: 5
-  #       mode: max
-  #   - class_path: models.flava.MetricCallback
-  #     init_args: 
-  #       output_dict: {
-  #         "label": 2
-  #       }
+  callbacks: 
+    - class_path: lightning.pytorch.callbacks.ModelCheckpoint
+      init_args:
+        dirpath: checkpoints/flava/fhm
+        monitor: hate_validate_auroc
+        mode: max
+        save_top_k: 1
+        every_n_epochs: 1
+        save_last: True
+    - class_path: lightning.pytorch.callbacks.EarlyStopping
+      init_args:
+        monitor: hate_validate_auroc
+        patience: 5
+        mode: max
   
 model:
   class_path: models.flava.FlavaClassificationModel
@@ -53,4 +48,4 @@ data:
     shuffle_train: True
     labels:
     - hate
-    batch_size: 16
+    batch_size: 32
