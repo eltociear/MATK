@@ -1,1 +1,1 @@
-python3 main.py fit --config configs/mami/visualbert_mami.yaml --seed_everything 1111
+python3 main.py fit --config configs/mami/visualbert_features.yaml --seed_everything 1111
