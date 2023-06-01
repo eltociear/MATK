@@ -37,13 +37,13 @@ PROTECTED_ATTACK = {
     ])
 }
 
-def main(github_dir: str, dataset_dir: str):
+def main(dataset_dir: str, processed_dir: str):
 
     # remap intensity and target
-    train_fp = os.path.join(github_dir, "data", "annotations", "train.json")
-    dev_seen_fp = os.path.join(github_dir, "data", "annotations", "dev_seen.json")
-    dev_unseen_fp = os.path.join(github_dir, "data", "annotations", "dev_unseen.json")
-    test_fp = os.path.join(github_dir, "data", "annotations", "test.jsonl")
+    train_fp = os.path.join(dataset_dir, "data", "annotations", "train.json")
+    dev_seen_fp = os.path.join(dataset_dir, "data", "annotations", "dev_seen.json")
+    dev_unseen_fp = os.path.join(dataset_dir, "data", "annotations", "dev_unseen.json")
+    test_fp = os.path.join(dataset_dir, "data", "annotations", "test.jsonl")
 
     train_df = pd.read_json(train_fp, lines=True)
     dev_seen_df = pd.read_json(dev_seen_fp, lines=True)
@@ -74,10 +74,10 @@ def main(github_dir: str, dataset_dir: str):
     dev_seen_df['id'] = range(len(train_df) + len(test_df) + len(dev_unseen_df), len(train_df) + len(test_df) + len(dev_seen_df)+len(dev_unseen_df))
 
     # create the new original file
-    new_train_fp = os.path.join(dataset_dir, "fhm_finegrained", "annotations", "train.jsonl")
-    new_dev_seen_fp = os.path.join(dataset_dir, "fhm_finegrained", "annotations", "dev_seen.jsonl")
-    new_dev_unseen_fp = os.path.join(dataset_dir, "fhm_finegrained", "annotations", "dev_unseen.jsonl")
-    new_test_fp = os.path.join(dataset_dir, "fhm_finegrained", "annotations", "test.jsonl")
+    new_train_fp = os.path.join(processed_dir, "fhm_finegrained", "annotations", "train.jsonl")
+    new_dev_seen_fp = os.path.join(processed_dir, "fhm_finegrained", "annotations", "dev_seen.jsonl")
+    new_dev_unseen_fp = os.path.join(processed_dir, "fhm_finegrained", "annotations", "dev_unseen.jsonl")
+    new_test_fp = os.path.join(processed_dir, "fhm_finegrained", "annotations", "test.jsonl")
     os.makedirs(os.path.dirname(new_train_fp), exist_ok=True)
 
     train_df.to_json(new_train_fp, orient="records", lines=True)
@@ -87,12 +87,12 @@ def main(github_dir: str, dataset_dir: str):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser("Converting FHM's finegrained dataset to specified format")
-    parser.add_argument("--github-dir", help="Folder path to the Facebook's Hateful Memes Fine-Grain directory")
-    parser.add_argument("--dataset-dir", help="Folder path to the dataset directory")
+    parser = argparse.ArgumentParser("Converting Facebook's Hateful Memes finegrained dataset to specified format")
+    parser.add_argument("--dataset-dir", help="Folder path to the Facebook's Hateful Memes Fine-Grain directory")
+    parser.add_argument("--processed-dir", help="Folder path to store the processed Facebook's Hateful Memes finegrained dataset")
     args = parser.parse_args()
 
     main(
-        args.github_dir,
-        args.dataset_dir
+        args.dataset_dir,
+        args.processed_dir
     )

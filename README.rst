@@ -60,9 +60,29 @@ Converting Your Dataset
 ~~~~~~~~~~~~~~~~~~~~~~~
 To prepare your local copy of the any of the above datasets for library usage, use the scripts provided under ``tools/conversion``. For example, use::
 
-  python3 convert_mami.py --github-dir /path/to/github_dir --dataset-dir /path/to/dataset_dir
+  python3 convert_harmemes.py --dataset-dir /path/to/dataset_dir --processed-dir /path/to/processed_dir
 
-where ``github-dir`` is the directory containing your raw MAMI dataset and ``dataset-dir`` is the directory that should hold the converted MAMI dataset.
+where ``dataset-dir`` is the directory containing your raw HarMeme dataset and ``processed-dir`` is the directory that should hold the converted MAMI dataset.
+
++------------------------------+----------------------------+
+| Dataset                      | Script                     |
++==============================+============================+
+| Facebook Hateful Memes (FHM) | convert_fhm.py             |
++------------------------------+----------------------------+
+| Fine grained FHM             | convert_finegrained_fhm.py |
++------------------------------+----------------------------+
+| HarMeme                      | convert_harmemes.py        |
++------------------------------+----------------------------+
+| Harm-C                       | convert_harmc.py           |
++------------------------------+----------------------------+
+| Harm-P                       | convert_harmp.py           |
++------------------------------+----------------------------+
+| MAMI                         | convert_mami.py            |
++------------------------------+----------------------------+
+
+For the MAMI dataset, we also provide the option to preprocess the dataset, ie; removing punctuation, removing non-ASCII characters, remove URLs, remove extra whitespaces, etc. To preprocess, set ``--process-data True``::
+
+  python3 convert_mami.py --dataset-dir /path/to/dataset_dir --processed-dir /path/to/processed_dir --process-data True
 
 Adding Custom Datasets
 ~~~~~~~~~~~~~~~~~~
@@ -76,7 +96,7 @@ Make sure your custom dataset folder's tree looks similar to the following:
 
 .. code-block:: text
 
-   dataset_dir
+   processed_dir
    ├── annotations
    │   ├── test.jsonl
    │   ├── train.jsonl
@@ -118,7 +138,7 @@ Model configuration
 Once your dataset is converted, follow these steps to configure the desired model for usage:
 #. Go to ``configs`` and pick the relevant dataset folder.
 #. Choose the YAML file relevant to the desired model.
-#. Look for the ``annotation_filepaths`` key and modify the values for ``train``,``test``,``predict``,``validation`` based on your ``dataset_dir``.
+#. Look for the ``annotation_filepaths`` key and modify the values for ``train``,``test``,``predict``,``validation`` based on your ``processed_dir``.
 #. (Optional) If you wish to modify any of the training hyperparameters, look for the ``trainer`` key and modify the values as required.
 
 

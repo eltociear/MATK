@@ -34,15 +34,15 @@ TARGET_MAP = {
     'society': 3
 }
 
-def main(github_dir: str, dataset_dir: str):
+def main(dataset_dir: str, processed_dir: str):
     
-    train_fp = os.path.join(github_dir, "data", "datasets", "memes", "defaults", "annotations", "train.jsonl")
-    test_fp = os.path.join(github_dir, "data", "datasets", "memes", "defaults", "annotations", "test.jsonl")
-    val_fp = os.path.join(github_dir, "data", "datasets", "memes", "defaults", "annotations", "val.jsonl")
+    train_fp = os.path.join(dataset_dir, "data", "datasets", "memes", "defaults", "annotations", "train.jsonl")
+    test_fp = os.path.join(dataset_dir, "data", "datasets", "memes", "defaults", "annotations", "test.jsonl")
+    val_fp = os.path.join(dataset_dir, "data", "datasets", "memes", "defaults", "annotations", "val.jsonl")
     
     ## copy images
-    img_dir = os.path.join(github_dir, "data", "datasets", "memes", "defaults", "images")
-    img_out_dir = os.path.join(dataset_dir, "harmeme", "images")
+    img_dir = os.path.join(dataset_dir, "data", "datasets", "memes", "defaults", "images")
+    img_out_dir = os.path.join(processed_dir, "harmeme", "images")
     os.makedirs(img_out_dir, exist_ok=True)
 
     copy_folder_with_progress(img_dir, img_out_dir)
@@ -69,9 +69,9 @@ def main(github_dir: str, dataset_dir: str):
     val_df['id'] = range(len(train_df) + len(test_df), len(train_df) + len(test_df) + len(val_df))
 
     # create the new original file
-    new_train_fp = os.path.join(dataset_dir, "harmeme", "annotations", "train.jsonl")
-    new_val_fp = os.path.join(dataset_dir, "harmeme", "annotations", "validate.jsonl")
-    new_test_fp = os.path.join(dataset_dir, "harmeme", "annotations", "test.jsonl")
+    new_train_fp = os.path.join(processed_dir, "harmeme", "annotations", "train.jsonl")
+    new_val_fp = os.path.join(processed_dir, "harmeme", "annotations", "validate.jsonl")
+    new_test_fp = os.path.join(processed_dir, "harmeme", "annotations", "test.jsonl")
     os.makedirs(os.path.dirname(new_train_fp), exist_ok=True)
 
     train_df.to_json(new_train_fp, orient="records", lines=True)
@@ -80,12 +80,12 @@ def main(github_dir: str, dataset_dir: str):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser("Converting FHM's finegrained dataset to specified format")
-    parser.add_argument("--github-dir", help="Folder path to the Facebook's Hateful Memes Fine-Grain directory")
-    parser.add_argument("--dataset-dir", help="Folder path to the dataset directory")
+    parser = argparse.ArgumentParser("Converting HarMeme dataset to specified format")
+    parser.add_argument("--dataset-dir", help="Folder path to the HarMeme directory")
+    parser.add_argument("--processed-dir", help="Folder path to store the processed HarMeme dataset")
     args = parser.parse_args()
 
     main(
-        args.github_dir,
-        args.dataset_dir
+        args.dataset_dir,
+        args.processed_dir
     )
