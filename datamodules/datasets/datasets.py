@@ -10,19 +10,24 @@ class VLFeaturesDataset(VisionLanguageBase):
     def __init__(
         self,
         annotation_filepath: str,
-        labels: List[str]
+        labels: List[str],
+        feats_dict: dict
     ):
         super().__init__(annotation_filepath, None, labels)
+        self.feats_dict = feats_dict
+        print(feats_dict.keys())
 
     def __getitem__(self, idx: int):
-        id = self.annotations.loc[idx, 'id']
-        image_id = self.annotations.loc[idx, 'img']
         text = self.annotations.loc[idx, 'text']
+        image_id = self.annotations.loc[idx, 'img']
+        id, _ = os.path.splitext(image_id)
 
         item = {
             'id': id,
             'image_id': image_id,
             'text': text,
+            'roi_features': self.feats_dict[id]['roi_features'],
+            'normalized_boxes': self.feats_dict[id]['normalized_boxes']
         }
 
         for l in self.labels:
@@ -40,9 +45,9 @@ class VLImagesDataset(VisionLanguageBase):
         super().__init__(annotation_filepath, image_dir, labels)
 
     def __getitem__(self, idx: int):
-        id = self.annotations.loc[idx, 'id']
-        image_id = self.annotations.loc[idx, 'img']
         text = self.annotations.loc[idx, 'text']
+        image_id = self.annotations.loc[idx, 'img']
+        id, _ = os.path.splitext(image_id)
 
         image_path = os.path.join(self.image_dir, image_id)
         image = Image.open(image_path)
@@ -78,9 +83,9 @@ class LanguageDataset(LanguageBase):
                          labels)
 
     def __getitem__(self, idx: int):
-        id = self.annotations.loc[idx, 'id']
-        image_id = self.annotations.loc[idx, 'img']
         text = self.annotations.loc[idx, 'text']
+        image_id = self.annotations.loc[idx, 'img']
+        id, _ = os.path.splitext(image_id)
 
         # Format the input template
         input_kwargs = {"text": text}

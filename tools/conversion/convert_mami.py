@@ -16,10 +16,13 @@ def copy_folder_with_progress(src_folder, dst_folder):
 
             # Copy files to the destination folder
             for file in files:
+                pbar.update(1)
+                if ".jpg" not in file:
+                    continue
+
                 src_file = os.path.join(root, file)
                 dst_file = os.path.join(dst_root, file)
                 shutil.copy2(src_file, dst_file)
-                pbar.update(1)
 
 def main(github_dir: str, dataset_dir: str):
 
@@ -40,9 +43,9 @@ def main(github_dir: str, dataset_dir: str):
     os.makedirs(dataset_val_dir, exist_ok=True)
     os.makedirs(dataset_dir, exist_ok=True)
 
-    copy_folder_with_progress(image_train_dir, dataset_train_dir)
-    copy_folder_with_progress(image_val_dir, dataset_val_dir)
-    copy_folder_with_progress(image_test_dir, dataset_test_dir)
+    # copy_folder_with_progress(image_train_dir, dataset_train_dir)
+    # copy_folder_with_progress(image_val_dir, dataset_val_dir)
+    # copy_folder_with_progress(image_test_dir, dataset_test_dir)
 
     # derive misogynous, shaming, stereotype, objectification and violence
 
@@ -81,7 +84,7 @@ def main(github_dir: str, dataset_dir: str):
     
     # create the new original file
     new_train_fp = os.path.join(dataset_dir, "mami", "annotations", "train.jsonl")
-    new_val_fp = os.path.join(dataset_dir, "mami", "annotations", "val.jsonl")
+    new_val_fp = os.path.join(dataset_dir, "mami", "annotations", "validate.jsonl")
     new_test_fp = os.path.join(dataset_dir, "mami", "annotations", "test.jsonl")
     os.makedirs(os.path.dirname(new_train_fp), exist_ok=True)
 

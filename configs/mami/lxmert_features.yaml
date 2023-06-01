@@ -2,14 +2,16 @@
 seed_everything: 1111
 trainer:
   accelerator: gpu
-  devices: 1
-  max_epochs: 30
+  devices: 2
+  strategy: ddp_find_unused_parameters_true
+  max_epochs: 50
   accumulate_grad_batches: 1
   enable_checkpointing: True
+  limit_train_batches: 1
   # callbacks: 
   #   - class_path: lightning.pytorch.callbacks.ModelCheckpoint
   #     init_args:
-  #       dirpath: checkpoints/flava/mami
+  #       dirpath: checkpoints/lxmert/fhm
   #       monitor: val_auroc
   #       mode: max
   #       save_top_k: 1
@@ -20,19 +22,19 @@ trainer:
   #       monitor: val_auroc
   #       patience: 5
   #       mode: max
-  #   - class_path: models.flava.MetricCallback
+  #   - class_path: models.lxmert.MetricCallback
   #     init_args: 
   #       output_dict: {
-  #         "shaming": 2,
-  #         "misogynous": 2,
-  #         "objectification": 2,
-  #         "violence": 2,
-  #         "stereotype": 2
-  #       }
+  #       "shaming": 2,
+  #       "misogynous": 2,
+  #       "objectification": 2,
+  #       "violence": 2,
+  #       "stereotype": 2
+  #     }
 model:
-  class_path: models.flava.FlavaClassificationModel
+  class_path: models.lxmert.LxmertClassificationModel
   init_args:
-    model_class_or_path: facebook/flava-full
+    model_class_or_path: unc-nlp/lxmert-base-uncased
     cls_dict: {
       "shaming": 2,
       "misogynous": 2,
@@ -41,15 +43,14 @@ model:
       "stereotype": 2
     }
 data:
-  class_path: datamodules.VLImagesDataModule
+  class_path: datamodules.VLFeaturesDataModule
   init_args:
-    tokenizer_class_or_path: facebook/flava-full
-    frcnn_class_or_path: None
-    image_dirs: {
-      train: /mnt/sda/datasets/memes/mami/images/train/,
-      validate: /mnt/sda/datasets/memes/mami/images/validate/,
-      test: /mnt/sda/datasets/memes/mami/images/validate/,
-      predict: /mnt/sda/datasets/memes/mami/images/validate/
+    tokenizer_class_or_path: unc-nlp/lxmert-base-uncased
+    feats_dirs: {
+      train: /mnt/sda/datasets/memes/mami/features/train/unc-nlp/frcnn-vg-finetuned/,
+      validate: /mnt/sda/datasets/memes/mami/features/validate/unc-nlp/frcnn-vg-finetuned/,
+      test: /mnt/sda/datasets/memes/mami/features/validate/unc-nlp/frcnn-vg-finetuned/,
+      predict: /mnt/sda/datasets/memes/mami/features/validate/unc-nlp/frcnn-vg-finetuned/
     }
     annotation_filepaths: {
       train: /mnt/sda/datasets/memes/mami/annotations/train.jsonl,

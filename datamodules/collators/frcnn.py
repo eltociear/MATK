@@ -58,7 +58,6 @@ def image_collate_fn(
 def image_collate_fn_fast(
         batch, 
         tokenizer,
-        feats_dict,
         labels
     ):
     inputs = _image_collate_fn(
@@ -70,10 +69,8 @@ def image_collate_fn_fast(
 
     visual_feats, visual_pos = [], []
     for item in batch:
-        item_id = str(item["id"])
-
-        visual_feats.append(feats_dict[item_id]["roi_features"])
-        visual_pos.append(feats_dict[item_id]["normalized_boxes"])
+        visual_feats.append(item["roi_features"])
+        visual_pos.append(item["normalized_boxes"])
 
     inputs['visual_feats'] = torch.cat(visual_feats, dim=0)
     inputs['visual_pos'] = torch.cat(visual_pos, dim=0)

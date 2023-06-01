@@ -26,7 +26,7 @@ class VLFeaturesDataModule(pl.LightningDataModule):
         self,
         annotation_filepaths: dict,
         tokenizer_class_or_path: str,
-        feats_dir: str,
+        feats_dirs: dict,
         batch_size: int,
         shuffle_train: bool,
         labels: List[str]
@@ -38,23 +38,30 @@ class VLFeaturesDataModule(pl.LightningDataModule):
         self.shuffle_train = shuffle_train
         self.labels = labels
         
-        self.feats_dict = self._load_feats_frcnn(feats_dir)
+        self.feats_dict = {}
+        self.collate_fn = {}
+        for split in ["train", "validate", "test", "predict"]:
+            self.feats_dict[split] = self._load_feats_frcnn(feats_dirs, split)
+        
         self.collate_fn = get_collator(
             tokenizer_class_or_path, 
             labels=labels,
-            feats_dict=self.feats_dict
         )
+
+        print(11016 in self.feats_dict["train"])
+        print("11016" in self.feats_dict["train"])
+
         self.dataset_cls = VLFeaturesDataset
     
-    def _load_feats_frcnn(self, feats_dir: str):
+    def _load_feats_frcnn(self, feats_dirs: str, key: str):
         feats_dict = {}
 
         files = [
-            x for x in os.listdir(feats_dir)
+            x for x in os.listdir(feats_dirs[key])
             if ".pkl" in x
         ]
-        for filename in tqdm.tqdm(files, desc='Loading features'):
-            filepath = os.path.join(feats_dir, filename)
+        for filename in tqdm.tqdm(files, desc=f"Loading {key} features"):
+            filepath = os.path.join(feats_dirs[key], filename)
             
             filename, _ = os.path.splitext(filename)
             # FHM workaround
@@ -70,11 +77,13 @@ class VLFeaturesDataModule(pl.LightningDataModule):
         if stage == "fit" or stage is None:
             self.train = self.dataset_cls(
                 annotation_filepath=self.annotation_filepaths["train"],
+                feats_dict=self.feats_dict["train"],
                 labels=self.labels
             )
 
             self.validate = self.dataset_cls(
                 annotation_filepath=self.annotation_filepaths["validate"],
+                feats_dict=self.feats_dict["validate"],
                 labels=self.labels
             )
 
@@ -82,12 +91,14 @@ class VLFeaturesDataModule(pl.LightningDataModule):
         if stage == "test" or stage is None:
             self.test = self.dataset_cls(
                 annotation_filepath=self.annotation_filepaths["test"],
+                feats_dict=self.feats_dict["test"],
                 labels=self.labels
             )
 
         if stage == "predict" or stage is None:
             self.predict = self.dataset_cls(
                 annotation_filepath=self.annotation_filepaths["predict"],
+                feats_dict=self.feats_dict["predict"],
                 labels=self.labels
             )
 
@@ -111,7 +122,7 @@ class VLImagesDataModule(pl.LightningDataModule):
     def __init__(
         self,
         annotation_filepaths: dict,
-        image_dir: str,
+        image_dirs: dict,
         tokenizer_class_or_path: str,
         frcnn_class_or_path: str,
         batch_size: int,
@@ -121,7 +132,7 @@ class VLImagesDataModule(pl.LightningDataModule):
         super().__init__()
 
         self.annotation_filepaths = annotation_filepaths
-        self.image_dir = image_dir
+        self.image_dirs = image_dirs
         self.batch_size = batch_size
         self.shuffle_train = shuffle_train
         self.labels = labels
@@ -137,13 +148,13 @@ class VLImagesDataModule(pl.LightningDataModule):
         if stage == "fit" or stage is None:
             self.train = self.dataset_cls(
                 annotation_filepath=self.annotation_filepaths["train"],
-                image_dir=self.image_dir,
+                image_dir=self.image_dirs["train"],
                 labels=self.labels
             )
 
             self.validate = self.dataset_cls(
                 annotation_filepath=self.annotation_filepaths["validate"],
-                image_dir=self.image_dir,
+                image_dir=self.image_dirs["validate"],
                 labels=self.labels
             )
 
@@ -151,14 +162,14 @@ class VLImagesDataModule(pl.LightningDataModule):
         if stage == "test" or stage is None:
             self.test = self.dataset_cls(
                 annotation_filepath=self.annotation_filepaths["test"],
-                image_dir=self.image_dir,
+                image_dir=self.image_dirs["test"],
                 labels=self.labels
             )
 
         if stage == "predict" or stage is None:
             self.predict = self.dataset_cls(
                 annotation_filepath=self.annotation_filepaths["predict"],
-                image_dir=self.image_dir,
+                image_dir=self.image_dirs["predict"],
                 labels=self.labels
             )
 

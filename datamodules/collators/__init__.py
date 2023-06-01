@@ -31,14 +31,7 @@ def get_collator(
     elif any([x in tokenizer_class_or_path for x in bert_tokenizer_models]):
         tokenizer = AutoTokenizer.from_pretrained(tokenizer_class_or_path)
             
-        if "feats_dict" in kwargs:
-            return partial(
-                frcnn_collator_fast, 
-                tokenizer=tokenizer, 
-                labels=labels, 
-                feats_dict=kwargs["feats_dict"]
-            )
-        else:
+        if "frcnn_class_or_path" in kwargs:
             frcnn_class_or_path = kwargs.pop("frcnn_class_or_path")
             frcnn_cfg = Config.from_pretrained(frcnn_class_or_path)
             image_preprocess = Preprocess(frcnn_cfg)
@@ -48,6 +41,12 @@ def get_collator(
                 tokenizer=tokenizer, 
                 labels=labels,
                 image_preprocess=image_preprocess
+            )
+        else:
+            return partial(
+                frcnn_collator_fast, 
+                tokenizer=tokenizer, 
+                labels=labels
             )
     else:
         tokenizer = AutoTokenizer.from_pretrained(tokenizer_class_or_path)
