@@ -7,27 +7,6 @@ import torchmetrics
 
 from transformers import VisualBertModel
 
-class MetricCallback(Callback):
-    def __init__(self, output_dict):
-        super().__init__()
-        self.output_dict = output_dict
-        
-    def on_train_start(self, trainer, pl_module):
-        for key, value in self.output_dict.items():
-            setattr(pl_module, f"{key}_train_acc", torchmetrics.Accuracy(task="multiclass", num_classes=value).to('cuda'))
-            setattr(pl_module, f"{key}_train_auroc", torchmetrics.AUROC(task="multiclass", num_classes=value).to('cuda'))
-            
-    def on_validation_start(self, trainer, pl_module):
-        for key, value in self.output_dict.items():
-            setattr(pl_module, f"{key}_val_acc", torchmetrics.Accuracy(task="multiclass", num_classes=value).to('cuda'))
-            setattr(pl_module, f"{key}_val_auroc", torchmetrics.AUROC(task="multiclass", num_classes=value).to('cuda'))
-            
-    def on_test_start(self, trainer, pl_module):
-        for key, value in self.output_dict.items():
-            setattr(pl_module, f"{key}_test_acc", torchmetrics.Accuracy(task="multiclass", num_classes=value).to('cuda'))
-            setattr(pl_module, f"{key}_test_auroc", torchmetrics.AUROC(task="multiclass", num_classes=value).to('cuda'))
-
-
 
 class VisualBertClassificationModel(pl.LightningModule):
     def __init__(self, model_class_or_path, cls_dict):
@@ -43,23 +22,22 @@ class VisualBertClassificationModel(pl.LightningModule):
 
         # set up metric
         self.cls_dict = cls_dict
+        for stage in ["train", "validate", "test"]:
+            for key, value in cls_dict.items():
+                setattr(self, f"{key}_{stage}_acc", torchmetrics.Accuracy(task="multiclass", num_classes=value))
+                setattr(self, f"{key}_{stage}_auroc", torchmetrics.AUROC(task="multiclass", num_classes=value))
+       
 
-        self.metric_callback = MetricCallback(self.cls_dict)
+    def compute_metrics_and_logs(self, cls_name, stage, loss, targets, preds):
+        accuracy_metric = getattr(self, f"{cls_name}_{stage}_acc")
+        auroc_metric = getattr(self, f"{cls_name}_{stage}_auroc")
 
-    def compute_metrics_and_logs(self, preds, labels, loss, prefix, step):
-        acc = getattr(self, f"{prefix}_{step}_acc")
-        auroc = getattr(self, f"{prefix}_{step}_auroc")
+        accuracy_metric(preds.argmax(dim=-1), targets)
+        auroc_metric(preds, targets)
 
-        acc(preds.argmax(dim=-1), labels)
-        auroc(preds, labels)
-
-        print(f"{prefix}_{step}_loss")
-        print(f"{prefix}_{step}_acc")
-        print(f"{prefix}_{step}_auroc")
-
-        self.log(f'{prefix}_{step}_loss', loss, prog_bar=True)
-        self.log(f'{prefix}_{step}_acc', acc, on_step=True, on_epoch=True, sync_dist=True)
-        self.log(f'{prefix}_{step}_auroc', auroc, on_step=True, on_epoch=True, sync_dist=True)
+        self.log(f'{cls_name}_{stage}_loss', loss, prog_bar=True)
+        self.log(f'{cls_name}_{stage}_acc', accuracy_metric, on_step=False, on_epoch=True, sync_dist=True)
+        self.log(f'{cls_name}_{stage}_auroc', auroc_metric, on_step=False, on_epoch=True, sync_dist=True)
         
     def training_step(self, batch, batch_idx):
 
@@ -87,7 +65,7 @@ class VisualBertClassificationModel(pl.LightningModule):
             label_preds = self.mlps[i](outputs.last_hidden_state[:, 0, :])
             label_loss = F.cross_entropy(label_preds, label_targets)
             loss += label_loss
-            # self.compute_metrics_and_logs(label_preds, label_targets, label_loss,label_list[i] , 'train')
+            self.compute_metrics_and_logs(label_list[i], "train", label_loss, label_targets, label_preds)
 
         return loss
     
@@ -118,7 +96,7 @@ class VisualBertClassificationModel(pl.LightningModule):
             label_preds = self.mlps[i](outputs.last_hidden_state[:, 0, :])
             label_loss = F.cross_entropy(label_preds, label_targets)
             loss += label_loss
-            # self.compute_metrics_and_logs(label_preds, label_targets, label_loss, label_list[i] , 'val')
+            self.compute_metrics_and_logs(label_list[i], "validate", label_loss, label_targets, label_preds)
 
         return loss
     
@@ -148,7 +126,7 @@ class VisualBertClassificationModel(pl.LightningModule):
             label_preds = self.mlps[i](outputs.last_hidden_state[:, 0, :])
             label_loss = F.cross_entropy(label_preds, label_targets)
             loss += label_loss
-            # self.compute_metrics_and_logs(label_preds, label_targets, label_loss,label_list[i] , 'train')
+            self.compute_metrics_and_logs(label_list[i], "test", label_loss, label_targets, label_preds)
         
         return loss
 

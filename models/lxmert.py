@@ -10,26 +10,6 @@ from transformers import LxmertModel
 from datamodules.collators.gqa_lxmert.modeling_frcnn import GeneralizedRCNN
 from datamodules.collators.gqa_lxmert.lxmert_utils import Config
 
-class MetricCallback(Callback):
-    def __init__(self, cls_dict):
-        super().__init__()
-        self.cls_dict = cls_dict
-        
-    def on_train_start(self, trainer, pl_module):
-        for key, value in self.cls_dict.items():
-            setattr(pl_module, f"{key}_train_acc", torchmetrics.Accuracy(task="multiclass", num_classes=value).to('cuda'))
-            setattr(pl_module, f"{key}_train_auroc", torchmetrics.AUROC(task="multiclass", num_classes=value).to('cuda'))
-            
-    def on_validation_start(self, trainer, pl_module):
-        for key, value in self.cls_dict.items():
-            setattr(pl_module, f"{key}_val_acc", torchmetrics.Accuracy(task="multiclass", num_classes=value).to('cuda'))
-            setattr(pl_module, f"{key}_val_auroc", torchmetrics.AUROC(task="multiclass", num_classes=value).to('cuda'))
-            
-    def on_test_start(self, trainer, pl_module):
-        for key, value in self.cls_dict.items():
-            setattr(pl_module, f"{key}_test_acc", torchmetrics.Accuracy(task="multiclass", num_classes=value).to('cuda'))
-            setattr(pl_module, f"{key}_test_auroc", torchmetrics.AUROC(task="multiclass", num_classes=value).to('cuda'))
-
 
 class LxmertClassificationModel(pl.LightningModule):
     def __init__(self, 
@@ -52,18 +32,22 @@ class LxmertClassificationModel(pl.LightningModule):
         
         # set up metric
         self.cls_dict = cls_dict
-        self.metric_callback = MetricCallback(self.cls_dict)
+        for stage in ["train", "validate", "test"]:
+            for key, value in cls_dict.items():
+                setattr(self, f"{key}_{stage}_acc", torchmetrics.Accuracy(task="multiclass", num_classes=value))
+                setattr(self, f"{key}_{stage}_auroc", torchmetrics.AUROC(task="multiclass", num_classes=value))
 
-    def compute_metrics_and_logs(self, preds, labels, loss, prefix, step):
-        acc = getattr(self, f"{prefix}_{step}_acc")
-        auroc = getattr(self, f"{prefix}_{step}_auroc")
 
-        acc_value = acc(preds.argmax(dim=-1), labels)
-        auroc_value = auroc(preds, labels)
+    def compute_metrics_and_logs(self, cls_name, stage, loss, targets, preds):
+        accuracy_metric = getattr(self, f"{cls_name}_{stage}_acc")
+        auroc_metric = getattr(self, f"{cls_name}_{stage}_auroc")
 
-        self.log(f'{prefix}_{step}_loss', loss, prog_bar=True)
-        self.log(f'{prefix}_{step}_acc', acc_value, on_step=True, on_epoch=True, sync_dist=True)
-        self.log(f'{prefix}_{step}_auroc', auroc_value, on_step=True, on_epoch=True, sync_dist=True)
+        accuracy_metric(preds.argmax(dim=-1), targets)
+        auroc_metric(preds, targets)
+
+        self.log(f'{cls_name}_{stage}_loss', loss, prog_bar=True)
+        self.log(f'{cls_name}_{stage}_acc', accuracy_metric, on_step=False, on_epoch=True, sync_dist=True)
+        self.log(f'{cls_name}_{stage}_auroc', auroc_metric, on_step=False, on_epoch=True, sync_dist=True)
 
     def training_step(self, batch, batch_idx):
 
@@ -112,7 +96,7 @@ class LxmertClassificationModel(pl.LightningModule):
             label_preds = self.mlps[i](pooled_output)
             label_loss = F.cross_entropy(label_preds, label_targets)
             loss += label_loss
-            # self.compute_metrics_and_logs(label_preds, label_targets, label_loss,label_list[i] , 'train')
+            self.compute_metrics_and_logs(label_list[i], "train", label_loss, label_targets, label_preds)
         
         return loss
     
@@ -164,7 +148,7 @@ class LxmertClassificationModel(pl.LightningModule):
             label_preds = self.mlps[i](pooled_output)
             label_loss = F.cross_entropy(label_preds, label_targets)
             loss += label_loss
-            # self.compute_metrics_and_logs(label_preds, label_targets, label_loss,label_list[i] , 'train')
+            self.compute_metrics_and_logs(label_list[i], "validate", label_loss, label_targets, label_preds)
         
         return loss
     
@@ -196,7 +180,7 @@ class LxmertClassificationModel(pl.LightningModule):
             label_preds = self.mlps[i](pooled_output)
             label_loss = F.cross_entropy(label_preds, label_targets)
             loss += label_loss
-            # self.compute_metrics_and_logs(label_preds, label_targets, label_loss,label_list[i] , 'train')
+            self.compute_metrics_and_logs(label_list[i], "test", label_loss, label_targets, label_preds)
         
         return loss
 
