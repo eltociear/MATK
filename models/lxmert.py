@@ -2,66 +2,29 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import lightning.pytorch as pl
+from lightning.pytorch.callbacks import Callback
 import torchmetrics
-from transformers import T5Config
-from .model_utils.vlt5.utilt5 import VLT5
-from .model_utils.vlt5.param import parse_args
+
+from transformers import LxmertModel
 
 from datamodules.collators.gqa_lxmert.modeling_frcnn import GeneralizedRCNN
 from datamodules.collators.gqa_lxmert.lxmert_utils import Config
 
-def create_config():
 
-    args = parse_args( 
-        backbone='t5-base', # Backbone architecture
-        load='Epoch30.pth', # Pretrained checkpoint 
-        parse=False, # False for interactive env (ex. jupyter)
-    )
-    args.gpu = 0 # assign GPU 
-    # create config file 
-    
-    config_class = T5Config 
-    config = config_class.from_pretrained('t5-base')
-    config.feat_dim = args.feat_dim
-    config.pos_dim = args.pos_dim
-    config.n_images = 1
-
-    config.use_vis_order_embedding = args.use_vis_order_embedding
-
-    config.dropout_rate = args.dropout
-    config.dropout = args.dropout
-    config.attention_dropout = args.dropout
-    config.activation_dropout = args.dropout
-
-    config.use_vis_layer_norm = args.use_vis_layer_norm
-    config.individual_vis_layer_norm = args.individual_vis_layer_norm
-    config.losses = args.losses
-
-    config.share_vis_lang_layer_norm = args.share_vis_lang_layer_norm
-    config.classifier = args.classifier
-    return config
-        
-class VLT5ClassificationModel(pl.LightningModule):
-
-    def __init__(
-            self, 
-            model_class_or_path, 
-            frcnn_class_or_path,
-            cls_dict
-        ):
-        
+class LxmertClassificationModel(pl.LightningModule):
+    def __init__(self, 
+                 model_class_or_path, 
+                 frcnn_class_or_path,
+                 cls_dict):
         super().__init__()
         self.save_hyperparameters()
 
-        config = create_config()
-
-        self.model = VLT5.from_pretrained(model_class_or_path, config=config)
-        self.model.resize_token_embeddings(32200)
-
+        self.model = LxmertModel.from_pretrained(model_class_or_path)
         if frcnn_class_or_path:
             self.frcnn_cfg = Config.from_pretrained("unc-nlp/frcnn-vg-finetuned")
             self.frcnn = GeneralizedRCNN.from_pretrained("unc-nlp/frcnn-vg-finetuned", config=self.frcnn_cfg)
-        
+
+        # set up classification
         self.mlps = nn.ModuleList([
             nn.Linear(self.model.config.hidden_size, value) 
             for value in cls_dict.values()
@@ -86,18 +49,13 @@ class VLT5ClassificationModel(pl.LightningModule):
         self.log(f'{cls_name}_{stage}_acc', accuracy_metric, on_step=False, on_epoch=True, sync_dist=True)
         self.log(f'{cls_name}_{stage}_auroc', auroc_metric, on_step=False, on_epoch=True, sync_dist=True)
 
-        
     def training_step(self, batch, batch_idx):
 
         input_ids = batch['input_ids']
-        attention_mask = batch['attention_mask']
         token_type_ids = batch['token_type_ids']
+        attention_mask = batch['attention_mask']
 
-        if "visual_feats" in batch and "visual_pos" in batch:
-            visual_feats = batch['visual_feats']
-            visual_pos = batch['visual_pos']
-        else:
-            # Run Faster-RCNN
+        if hasattr(self, "frcnn"):
             images = batch['images']
             sizes = batch['sizes']
             scales_yx = batch['scales_yx']
@@ -113,6 +71,9 @@ class VLT5ClassificationModel(pl.LightningModule):
 
             visual_feats = visual_dict['visual_feats']
             visual_pos = visual_dict['visual_pos']
+        else:
+            visual_feats = batch['visual_feats']
+            visual_pos = batch['visual_pos']
         
         outputs = self.model(
             input_ids=input_ids,
@@ -138,11 +99,9 @@ class VLT5ClassificationModel(pl.LightningModule):
             self.compute_metrics_and_logs(label_list[i], "train", label_loss, label_targets, label_preds)
         
         return loss
-
-
-
+    
+    
     def validation_step(self, batch, batch_idx):
-        
         input_ids = batch['input_ids']
         attention_mask = batch['attention_mask']
         token_type_ids = batch['token_type_ids']
@@ -193,9 +152,7 @@ class VLT5ClassificationModel(pl.LightningModule):
         
         return loss
     
-
     def test_step(self, batch, batch_idx):
-
         input_ids = batch['input_ids']
         attention_mask = batch['attention_mask']
         visual_feats = batch['visual_feats']
@@ -236,15 +193,14 @@ class VLT5ClassificationModel(pl.LightningModule):
         attention_mask = batch['attention_mask']
         visual_feats = batch['visual_feats']
         visual_pos = batch['visual_pos']
-        print(batch)
-        
+        token_type_ids = batch['token_type_ids']
         
         outputs = self.model(
             input_ids=input_ids,
             attention_mask=attention_mask,
             visual_feats=visual_feats,
             visual_pos = visual_pos,
-            # token_type_ids = token_type_ids
+            token_type_ids = token_type_ids
         )
 
 
@@ -265,7 +221,7 @@ class VLT5ClassificationModel(pl.LightningModule):
             results['labels'] = batch["labels"]
 
         return results
-
+    
     def configure_optimizers(self):
         self.optimizer = torch.optim.Adam(self.parameters(), lr=2e-5)
         return [self.optimizer]

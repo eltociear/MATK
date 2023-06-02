@@ -1,0 +1,56 @@
+# lightning.pytorch==2.0.0
+seed_everything: 1111
+trainer:
+  accelerator: gpu
+  devices: 1
+  max_epochs: 30
+  accumulate_grad_batches: 1
+  enable_checkpointing: True
+  # callbacks: 
+  #   - class_path: lightning.pytorch.callbacks.ModelCheckpoint
+  #     init_args:
+  #       dirpath: checkpoints/lxmert/fhm
+  #       monitor: val_auroc
+  #       mode: max
+  #       save_top_k: 1
+  #       every_n_epochs: 1
+  #       save_last: True
+  #   - class_path: lightning.pytorch.callbacks.EarlyStopping
+  #     init_args:
+  #       monitor: val_auroc
+  #       patience: 5
+  #       mode: max
+  #   - class_path: models.lxmert.MetricCallback
+  #     init_args: 
+  #       output_dict: {
+  #       "target": 3,
+  #       "target": 4
+  #     }
+
+model:
+  class_path: models.lxmert.LxmertClassificationModel
+  init_args:
+    model_class_or_path: unc-nlp/lxmert-base-uncased
+    cls_dict: {
+      "target": 4
+    }
+data:
+  class_path: datamodules.VLFeaturesDataModule
+  init_args:
+    tokenizer_class_or_path: unc-nlp/lxmert-base-uncased
+    feats_dirs: {
+      train: /mnt/sda/datasets/memes/harmemes/features/unc-nlp/frcnn-vg-finetuned/,
+      validate: /mnt/sda/datasets/memes/harmemes/features/unc-nlp/frcnn-vg-finetuned/,
+      test: /mnt/sda/datasets/memes/harmemes/features/unc-nlp/frcnn-vg-finetuned/,
+      predict: /mnt/sda/datasets/memes/harmemes/features/unc-nlp/frcnn-vg-finetuned/
+    }
+    annotation_filepaths: {
+      train: /mnt/sda/datasets/memes/harmemes/annotations/train.jsonl,
+      validate: /mnt/sda/datasets/memes/harmemes/annotations/validate.jsonl,
+      test: /mnt/sda/datasets/memes/harmemes/annotations/validate.jsonl,
+      predict: /mnt/sda/datasets/memes/harmemes/annotations/validate.jsonl
+    }
+    shuffle_train: True
+    batch_size: 32
+    labels:
+    - target

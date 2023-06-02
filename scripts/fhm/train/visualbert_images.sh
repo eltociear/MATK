@@ -1,0 +1,1 @@
+python3 main.py fit --config configs/fhm/hate_cls/visualbert_images.yaml --seed_everything 1111

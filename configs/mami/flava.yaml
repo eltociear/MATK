@@ -1,0 +1,67 @@
+# lightning.pytorch==2.0.0
+seed_everything: 1111
+trainer:
+  accelerator: gpu
+  devices: 1
+  max_epochs: 30
+  accumulate_grad_batches: 1
+  enable_checkpointing: True
+  # callbacks: 
+  #   - class_path: lightning.pytorch.callbacks.ModelCheckpoint
+  #     init_args:
+  #       dirpath: checkpoints/flava/mami
+  #       monitor: val_auroc
+  #       mode: max
+  #       save_top_k: 1
+  #       every_n_epochs: 1
+  #       save_last: True
+  #   - class_path: lightning.pytorch.callbacks.EarlyStopping
+  #     init_args:
+  #       monitor: val_auroc
+  #       patience: 5
+  #       mode: max
+  #   - class_path: models.flava.MetricCallback
+  #     init_args: 
+  #       output_dict: {
+  #         "shaming": 2,
+  #         "misogynous": 2,
+  #         "objectification": 2,
+  #         "violence": 2,
+  #         "stereotype": 2
+  #       }
+model:
+  class_path: models.flava.FlavaClassificationModel
+  init_args:
+    model_class_or_path: facebook/flava-full
+    cls_dict: {
+      "shaming": 2,
+      "misogynous": 2,
+      "objectification": 2,
+      "violence": 2,
+      "stereotype": 2
+    }
+data:
+  class_path: datamodules.VLImagesDataModule
+  init_args:
+    tokenizer_class_or_path: facebook/flava-full
+    frcnn_class_or_path: None
+    image_dirs: {
+      train: /mnt/sda/datasets/memes/mami/images/train/,
+      validate: /mnt/sda/datasets/memes/mami/images/validate/,
+      test: /mnt/sda/datasets/memes/mami/images/validate/,
+      predict: /mnt/sda/datasets/memes/mami/images/validate/
+    }
+    annotation_filepaths: {
+      train: /mnt/sda/datasets/memes/mami/annotations/train.jsonl,
+      validate: /mnt/sda/datasets/memes/mami/annotations/validate.jsonl,
+      test: /mnt/sda/datasets/memes/mami/annotations/validate.jsonl,
+      predict: /mnt/sda/datasets/memes/mami/annotations/validate.jsonl
+    }
+    shuffle_train: True
+    labels:
+    - shaming
+    - misogynous
+    - objectification
+    - violence
+    - stereotype
+    batch_size: 16
