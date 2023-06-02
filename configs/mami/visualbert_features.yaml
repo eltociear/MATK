@@ -1,0 +1,67 @@
+# lightning.pytorch==2.0.0
+seed_everything: 1111
+trainer:
+  accelerator: gpu
+  devices: 2
+  strategy: ddp_find_unused_parameters_true
+  max_epochs: 50
+  accumulate_grad_batches: 1
+  enable_checkpointing: True
+  # callbacks: 
+  #   - class_path: lightning.pytorch.callbacks.ModelCheckpoint
+  #     init_args:
+  #       dirpath: checkpoints/visualbert/fhm
+  #       monitor: val_auroc
+  #       mode: max
+  #       save_top_k: 1
+  #       every_n_epochs: 1
+  #       save_last: True
+  #   - class_path: lightning.pytorch.callbacks.EarlyStopping
+  #     init_args:
+  #       monitor: val_auroc
+  #       patience: 5
+  #       mode: max
+  #   - class_path: models.visualbert.MetricCallback
+  #     init_args: 
+  #       output_dict: {
+  #         "shaming": 2,
+  #         "misogynous": 2,
+  #         "objectification": 2,
+  #         "violence": 2,
+  #         "stereotype": 2
+  #       }
+model:
+  class_path: models.visualbert.VisualBertClassificationModel
+  init_args:
+    model_class_or_path: uclanlp/visualbert-vqa-coco-pre
+    cls_dict: {
+      "shaming": 2,
+      "misogynous": 2,
+      "objectification": 2,
+      "violence": 2,
+      "stereotype": 2
+    }
+data:
+  class_path: datamodules.VLFeaturesDataModule
+  init_args:
+    tokenizer_class_or_path: unc-nlp/lxmert-base-uncased
+    feats_dirs: {
+      train: /mnt/sda/datasets/memes/mami/features/train/unc-nlp/frcnn-vg-finetuned/,
+      validate: /mnt/sda/datasets/memes/mami/features/validate/unc-nlp/frcnn-vg-finetuned/,
+      test: /mnt/sda/datasets/memes/mami/features/validate/unc-nlp/frcnn-vg-finetuned/,
+      predict: /mnt/sda/datasets/memes/mami/features/validate/unc-nlp/frcnn-vg-finetuned/
+    }
+    annotation_filepaths: {
+      train: /mnt/sda/datasets/memes/mami/annotations/train.jsonl,
+      validate: /mnt/sda/datasets/memes/mami/annotations/validate.jsonl,
+      test: /mnt/sda/datasets/memes/mami/annotations/validate.jsonl,
+      predict: /mnt/sda/datasets/memes/mami/annotations/validate.jsonl
+    }
+    shuffle_train: True
+    labels:
+    - shaming
+    - misogynous
+    - objectification
+    - violence
+    - stereotype
+    batch_size: 16

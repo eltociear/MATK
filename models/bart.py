@@ -4,16 +4,16 @@ import torch.nn.functional as F
 import lightning.pytorch as pl
 import torchmetrics
 
-from transformers import T5ForConditionalGeneration, AutoTokenizer
 from typing import List
+from transformers import BartForConditionalGeneration, AutoTokenizer
 
-class T5ClassificationModel(pl.LightningModule):
-    def __init__(self, model_class_or_path: str, labels: List[str], label2word: dict):
+class BARTCasualModel(pl.LightningModule):
+    def __init__(self, model_class_or_path, labels: List[str], label2word: dict):
         super().__init__()
         self.save_hyperparameters()
         self.labels = labels
 
-        self.model = T5ForConditionalGeneration.from_pretrained(model_class_or_path)
+        self.model = BartForConditionalGeneration.from_pretrained(model_class_or_path)
         self.tokenizer = AutoTokenizer.from_pretrained(model_class_or_path, use_fast=False)
 
         num_unique_words = len(set(label2word.values()))
@@ -28,10 +28,10 @@ class T5ClassificationModel(pl.LightningModule):
             token = self.tokenizer.encode(word, add_special_tokens=False)[0]
             self.token2label[token] = label
 
-        print("token2label:", self.token2label)
+        print(label2word)
+        print(self.token2label)
     
     def training_step(self, batch, batch_idx):
-
         # TODO: Address this for multi-task learning
         labels = self.labels[0]
         labels = batch[labels]
@@ -41,7 +41,7 @@ class T5ClassificationModel(pl.LightningModule):
             attention_mask=batch["attention_mask"],
             labels=labels
         )
-            
+
         self.log('train_loss', outputs.loss, prog_bar=True)
         return outputs.loss
     
@@ -131,6 +131,6 @@ class T5ClassificationModel(pl.LightningModule):
         return results
     
     def configure_optimizers(self):
-        # self.optimizer = torch.optim.Adam(self.parameters(), lr=2e-5)
-        self.optimizer = torch.optim.Adam(self.parameters(), lr=1e-4)
+        self.optimizer = torch.optim.Adam(self.parameters(), lr=2e-5)
+        # self.optimizer = torch.optim.Adam(self.parameters(), lr=1e-4)
         return [self.optimizer]
