@@ -100,7 +100,7 @@ Make sure your custom dataset folder's tree looks similar to the following:
    ├── annotations
    │   ├── test.jsonl
    │   ├── train.jsonl
-   │   └── val.jsonl
+   │   └── validate.jsonl
    └── images
       ├── 1.jpg
       └── 2.jpg
