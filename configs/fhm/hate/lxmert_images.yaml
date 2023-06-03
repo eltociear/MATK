@@ -27,7 +27,7 @@ model:
     model_class_or_path: unc-nlp/lxmert-base-uncased
     frcnn_class_or_path: unc-nlp/frcnn-vg-finetuned
     cls_dict: {
-      "label": 2
+      "hate": 2
     }
 data:
   class_path: datamodules.VLImagesDataModule
@@ -44,4 +44,4 @@ data:
     shuffle_train: True
     batch_size: 32
     labels:
-    - label
+    - hate

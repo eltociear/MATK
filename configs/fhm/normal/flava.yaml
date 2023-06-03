@@ -26,7 +26,7 @@ model:
   init_args:
     model_class_or_path: facebook/flava-full
     cls_dict: {
-      "hate": 2
+      "label": 2
     }
 data:
   class_path: datamodules.VLImagesDataModule
@@ -34,18 +34,18 @@ data:
     tokenizer_class_or_path: facebook/flava-full
     frcnn_class_or_path: None
     image_dirs: {
-      train: /mnt/sdb/aditi/hconvert/fhm/images,
-      validate: /mnt/sdb/aditi/hconvert/fhm/images,
-      test: /mnt/sdb/aditi/hconvert/fhm/images,
-      predict: /mnt/sdb/aditi/hconvert/fhm/images
+      train: /mnt/sda/datasets/memes/fhm/images/img/,
+      validate: /mnt/sda/datasets/memes/fhm/images/img/,
+      test: /mnt/sda/datasets/memes/fhm/images/img/,
+      predict: /mnt/sda/datasets/memes/fhm/images/img/
     }
     annotation_filepaths: {
-      train: /mnt/sda/datasets/memes/fhm_finegrained/annotations/train.jsonl,
-      validate: /mnt/sda/datasets/memes/fhm_finegrained/annotations/dev_seen.jsonl,
-      test: /mnt/sda/datasets/memes/fhm_finegrained/annotations/dev_seen.jsonl,
-      predict: /mnt/sda/datasets/memes/fhm_finegrained/annotations/dev_seen.jsonl
+      train: /mnt/sdb/aditi/hconvert/fhm/annotations/train.jsonl,
+      validate: /mnt/sdb/aditi/hconvert/fhm/annotations/dev_seen.jsonl,
+      test: /mnt/sdb/aditi/hconvert/fhm/annotations/dev_seen.jsonl,
+      predict: /mnt/sdb/aditi/hconvert/fhm/annotations/dev_seen.jsonl
     }
     shuffle_train: True
     labels:
-    - hate
+    - label
     batch_size: 32

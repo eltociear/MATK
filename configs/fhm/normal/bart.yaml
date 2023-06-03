@@ -21,11 +21,11 @@ trainer:
         patience: 5
         mode: max
 model:
-  class_path: models.t5.T5ClassificationModel
+  class_path: models.bart.BARTCasualModel
   init_args:
-    model_class_or_path: t5-large
+    model_class_or_path: facebook/bart-large
     labels:
-    - hate
+    - label
     label2word: {
       0: "no",
       1: "yes"
@@ -33,20 +33,15 @@ model:
 data:
   class_path: datamodules.LanguageDataModule
   init_args:
-    tokenizer_class_or_path: t5-large
+    tokenizer_class_or_path: facebook/bart-large
     annotation_filepaths: {
-      # train: /mnt/sda/datasets/memes/fhm_finegrained/annotations/train.jsonl,
-      # validate: /mnt/sda/datasets/memes/fhm_finegrained/annotations/dev_seen.jsonl,
-      # test: /mnt/sda/datasets/memes/fhm_finegrained/annotations/dev_seen.jsonl,
-      # predict: /mnt/sda/datasets/memes/fhm_finegrained/annotations/dev_seen.jsonl
-      train: /mnt/sdb/aditi/datasets/fhm_finegrained/annotations/train.jsonl,
-      validate: /mnt/sdb/aditi/datasets/fhm_finegrained/annotations/dev_seen.jsonl,
-      test: /mnt/sdb/aditi/datasets/fhm_finegrained/annotations/dev_seen.jsonl,
-      predict: /mnt/sdb/aditi/datasets/fhm_finegrained/annotations/dev_seen.jsonl
+      train: /mnt/sdb/aditi/hconvert/fhm/annotations/train.jsonl,
+      validate: /mnt/sdb/aditi/hconvert/fhm/annotations/dev_seen.jsonl,
+      test: /mnt/sdb/aditi/hconvert/fhm/annotations/dev_seen.jsonl,
+      predict: /mnt/sdb/aditi/hconvert/fhm/annotations/dev_seen.jsonl
     }
     auxiliary_dicts: {
       # "caption": "/mnt/sda/datasets/memes/fhm/captions/fhm_clean_captions.pkl"
-      # "caption": "/mnt/sdb/aditi/datasets/memes/fhm/captions/fhm_clean_captions.pkl"
     }
     input_template: "question: is it hateful? context: {text}"
     output_template: "{label}</s>"
@@ -57,4 +52,4 @@ data:
     shuffle_train: True
     batch_size: 8
     labels:
-    - hate
+    - label

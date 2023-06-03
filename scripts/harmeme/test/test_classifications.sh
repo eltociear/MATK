@@ -1,6 +1,6 @@
+### HarMemes Intensity Classification ###
 echo "FLAVA - HarMemes Intensity"
 
-### HarMemes Intensity Classification ###
 python3 main.py fit \
     --config configs/harmeme/intensity/flava.yaml \
     --seed_everything 1111 \

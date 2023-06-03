@@ -21,9 +21,9 @@ trainer:
         patience: 5
         mode: max
 model:
-  class_path: models.t5.T5ClassificationModel
+  class_path: models.bart.BARTCasualModel
   init_args:
-    model_class_or_path: t5-large
+    model_class_or_path: facebook/bart-large
     labels:
     - intensity
     label2word: {
@@ -34,16 +34,12 @@ model:
 data:
   class_path: datamodules.LanguageDataModule
   init_args:
-    tokenizer_class_or_path: t5-large
+    tokenizer_class_or_path: facebook/bart-large
     annotation_filepaths: {
-      # train: /mnt/sda/datasets/memes/harmemes/annotations/train.jsonl,
-      # validate: /mnt/sda/datasets/memes/harmemes/annotations/validate.jsonl,
-      # test: /mnt/sda/datasets/memes/harmemes/annotations/validate.jsonl,
-      # predict: /mnt/sda/datasets/memes/harmemes/annotations/validate.jsonl
-      train: /mnt/sdb/aditi/datasets/harmemes/annotations/train.jsonl,
-      validate: /mnt/sdb/aditi/datasets/harmemes/annotations/validate.jsonl,
-      test: /mnt/sdb/aditi/datasets/harmemes/annotations/validate.jsonl,
-      predict: /mnt/sdb/aditi/datasets/harmemes/annotations/validate.jsonl 
+      train: /mnt/sda/datasets/memes/harmemes/annotations/train.jsonl,
+      validate: /mnt/sda/datasets/memes/harmemes/annotations/validate.jsonl,
+      test: /mnt/sda/datasets/memes/harmemes/annotations/validate.jsonl,
+      predict: /mnt/sda/datasets/memes/harmemes/annotations/validate.jsonl
     }
     auxiliary_dicts: {}
     input_template: "question: is it hateful? context: {text}"

@@ -25,7 +25,7 @@ model:
   init_args:
     model_class_or_path: t5-large
     labels:
-    - hate
+    - label
     label2word: {
       0: "no",
       1: "yes"
@@ -39,10 +39,10 @@ data:
       # validate: /mnt/sda/datasets/memes/fhm_finegrained/annotations/dev_seen.jsonl,
       # test: /mnt/sda/datasets/memes/fhm_finegrained/annotations/dev_seen.jsonl,
       # predict: /mnt/sda/datasets/memes/fhm_finegrained/annotations/dev_seen.jsonl
-      train: /mnt/sdb/aditi/datasets/fhm_finegrained/annotations/train.jsonl,
-      validate: /mnt/sdb/aditi/datasets/fhm_finegrained/annotations/dev_seen.jsonl,
-      test: /mnt/sdb/aditi/datasets/fhm_finegrained/annotations/dev_seen.jsonl,
-      predict: /mnt/sdb/aditi/datasets/fhm_finegrained/annotations/dev_seen.jsonl
+      train: /mnt/sdb/aditi/hconvert/fhm/annotations/train.jsonl,
+      validate: /mnt/sdb/aditi/hconvert/fhm/annotations/dev_seen.jsonl,
+      test: /mnt/sdb/aditi/hconvert/fhm/annotations/dev_seen.jsonl,
+      predict: /mnt/sdb/aditi/hconvert/fhm/annotations/dev_seen.jsonl
     }
     auxiliary_dicts: {
       # "caption": "/mnt/sda/datasets/memes/fhm/captions/fhm_clean_captions.pkl"
@@ -57,4 +57,4 @@ data:
     shuffle_train: True
     batch_size: 8
     labels:
-    - hate
+    - label
