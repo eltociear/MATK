@@ -7,8 +7,8 @@ class SimpleClassifier(nn.Module):
         super(SimpleClassifier,self).__init__()
         layer=[
             weight_norm(nn.Linear(in_dim,hid_dim),dim=None),
-            nn.ReLU(),
-            nn.Dropout(dropout,inplace=True),
+            nn.ReLU(inplace=False),
+            nn.Dropout(dropout),
             weight_norm(nn.Linear(hid_dim,out_dim),dim=None)
         ]
         self.main=nn.Sequential(*layer)

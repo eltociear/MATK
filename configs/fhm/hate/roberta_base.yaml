@@ -3,7 +3,7 @@ seed_everything: 1111
 trainer:
   accelerator: gpu
   devices: 1
-  max_epochs: 30
+  max_epochs: 1
   accumulate_grad_batches: 1
   enable_checkpointing: True
   callbacks: 
@@ -27,7 +27,7 @@ model:
     opt: 
       UNIMODAL : False
       FEAT_DIM : 2048
-      ROBERTA_DIM : 1024
+      ROBERTA_DIM : 512
       FC_DROPOUT : 0.4
       MID_DIM : 512
       TRANS_LAYER : 1
@@ -45,7 +45,7 @@ data:
       NUM_SHOTS : 16
       DATA : /mnt/sdb/aditi/hconvert/prompthate/data ## attention
       CAPTION_PATH : /mnt/sdb/aditi/hconvert/prompthate/caption ## attention
-      ROBERTA_DIM : 1024
+      ROBERTA_DIM : 512
       NUM_LABELS : 2
       POS_WORD : good
       NEG_WORD : bad
