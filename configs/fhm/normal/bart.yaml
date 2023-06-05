@@ -9,7 +9,7 @@ trainer:
   callbacks: 
     - class_path: lightning.pytorch.callbacks.ModelCheckpoint
       init_args:
-        dirpath: checkpoints/flava/fhm
+        dirpath: checkpoints/bart/fhm/normal
         monitor: val_auroc
         mode: max
         save_top_k: 1
@@ -35,10 +35,10 @@ data:
   init_args:
     tokenizer_class_or_path: facebook/bart-large
     annotation_filepaths: {
-      train: /mnt/sdb/aditi/hconvert/fhm/annotations/train.jsonl,
-      validate: /mnt/sdb/aditi/hconvert/fhm/annotations/dev_seen.jsonl,
-      test: /mnt/sdb/aditi/hconvert/fhm/annotations/dev_seen.jsonl,
-      predict: /mnt/sdb/aditi/hconvert/fhm/annotations/dev_seen.jsonl
+      train: /Scratch/mingshan/datasets/fhm_normal/annotations/train.jsonl,
+      validate: /Scratch/mingshan/datasets/fhm_normal/annotations/dev_seen.jsonl,
+      test: /Scratch/mingshan/datasets/fhm_normal/annotations/dev_seen.jsonl,
+      predict: /Scratch/mingshan/datasets/fhm_normal/annotations/dev_seen.jsonl
     }
     auxiliary_dicts: {
       # "caption": "/mnt/sda/datasets/memes/fhm/captions/fhm_clean_captions.pkl"
@@ -50,6 +50,6 @@ data:
       1: "yes"
     }
     shuffle_train: True
-    batch_size: 8
+    batch_size: 32
     labels:
     - label

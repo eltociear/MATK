@@ -9,7 +9,7 @@ trainer:
   callbacks: 
     - class_path: lightning.pytorch.callbacks.ModelCheckpoint
       init_args:
-        dirpath: checkpoints/flava/fhm
+        dirpath: checkpoints/t5/fhm/hate
         monitor: val_auroc
         mode: max
         save_top_k: 1
@@ -35,18 +35,13 @@ data:
   init_args:
     tokenizer_class_or_path: t5-large
     annotation_filepaths: {
-      # train: /mnt/sda/datasets/memes/fhm_finegrained/annotations/train.jsonl,
-      # validate: /mnt/sda/datasets/memes/fhm_finegrained/annotations/dev_seen.jsonl,
-      # test: /mnt/sda/datasets/memes/fhm_finegrained/annotations/dev_seen.jsonl,
-      # predict: /mnt/sda/datasets/memes/fhm_finegrained/annotations/dev_seen.jsonl
-      train: /mnt/sdb/aditi/datasets/fhm_finegrained/annotations/train.jsonl,
-      validate: /mnt/sdb/aditi/datasets/fhm_finegrained/annotations/dev_seen.jsonl,
-      test: /mnt/sdb/aditi/datasets/fhm_finegrained/annotations/dev_seen.jsonl,
-      predict: /mnt/sdb/aditi/datasets/fhm_finegrained/annotations/dev_seen.jsonl
+      train: /Scratch/mingshan/datasets/fhm_finegrained/annotations/train.jsonl,
+      validate: /Scratch/mingshan/datasets/fhm_finegrained/annotations/dev_seen.jsonl,
+      test: /Scratch/mingshan/datasets/fhm_finegrained/annotations/dev_seen.jsonl,
+      predict: /Scratch/mingshan/datasets/fhm_finegrained/annotations/dev_seen.jsonl
     }
     auxiliary_dicts: {
       # "caption": "/mnt/sda/datasets/memes/fhm/captions/fhm_clean_captions.pkl"
-      # "caption": "/mnt/sdb/aditi/datasets/memes/fhm/captions/fhm_clean_captions.pkl"
     }
     input_template: "question: is it hateful? context: {text}"
     output_template: "{label}</s>"
@@ -55,6 +50,6 @@ data:
       1: "yes"
     }
     shuffle_train: True
-    batch_size: 8
+    batch_size: 32
     labels:
     - hate

@@ -6,29 +6,20 @@ trainer:
   max_epochs: 30
   accumulate_grad_batches: 1
   enable_checkpointing: True
-  # callbacks: 
-  #   - class_path: lightning.pytorch.callbacks.ModelCheckpoint
-  #     init_args:
-  #       dirpath: checkpoints/flava/mami
-  #       monitor: val_auroc
-  #       mode: max
-  #       save_top_k: 1
-  #       every_n_epochs: 1
-  #       save_last: True
-  #   - class_path: lightning.pytorch.callbacks.EarlyStopping
-  #     init_args:
-  #       monitor: val_auroc
-  #       patience: 5
-  #       mode: max
-  #   - class_path: models.flava.MetricCallback
-  #     init_args: 
-  #       output_dict: {
-  #         "shaming": 2,
-  #         "misogynous": 2,
-  #         "objectification": 2,
-  #         "violence": 2,
-  #         "stereotype": 2
-  #       }
+  callbacks: 
+    - class_path: lightning.pytorch.callbacks.ModelCheckpoint
+      init_args:
+        dirpath: checkpoints/flava/mami
+        monitor: hate_validate_auroc
+        mode: max
+        save_top_k: 1
+        every_n_epochs: 1
+        save_last: True
+    - class_path: lightning.pytorch.callbacks.EarlyStopping
+      init_args:
+        monitor: hate_validate_auroc
+        patience: 5
+        mode: max
 model:
   class_path: models.flava.FlavaClassificationModel
   init_args:
@@ -46,16 +37,16 @@ data:
     tokenizer_class_or_path: facebook/flava-full
     frcnn_class_or_path: None
     image_dirs: {
-      train: /mnt/sda/datasets/memes/mami/images/train/,
-      validate: /mnt/sda/datasets/memes/mami/images/validate/,
-      test: /mnt/sda/datasets/memes/mami/images/validate/,
-      predict: /mnt/sda/datasets/memes/mami/images/validate/
+      train: /Scratch/datasets/mami/images/img/train,
+      validate: /Scratch/datasets/mami/images/img/test,
+      test: /Scratch/datasets/mami/images/img/test,
+      predict: /Scratch/datasets/mami/images/img/test,
     }
     annotation_filepaths: {
-      train: /mnt/sda/datasets/memes/mami/annotations/train.jsonl,
-      validate: /mnt/sda/datasets/memes/mami/annotations/validate.jsonl,
-      test: /mnt/sda/datasets/memes/mami/annotations/validate.jsonl,
-      predict: /mnt/sda/datasets/memes/mami/annotations/validate.jsonl
+      train: /Scratch/datasets/mami/annotations/train.jsonl,
+      validate: /Scratch/datasets/mami/annotations/test.jsonl,
+      test: /Scratch/datasets/mami/annotations/test.jsonl,
+      predict: /Scratch/datasets/mami/annotations/test.jsonl,
     }
     shuffle_train: True
     labels:
@@ -64,4 +55,4 @@ data:
     - objectification
     - violence
     - stereotype
-    batch_size: 16
+    batch_size: 32

@@ -9,15 +9,15 @@ trainer:
   callbacks: 
     - class_path: lightning.pytorch.callbacks.ModelCheckpoint
       init_args:
-        dirpath: checkpoints/flava/fhm
-        monitor: val_auroc
+        dirpath: checkpoints/t5/mami
+        monitor: hate_validate_auroc
         mode: max
         save_top_k: 1
         every_n_epochs: 1
         save_last: True
     - class_path: lightning.pytorch.callbacks.EarlyStopping
       init_args:
-        monitor: val_auroc
+        monitor: hate_validate_auroc
         patience: 5
         mode: max
 model:
@@ -43,10 +43,10 @@ data:
       # validate: /mnt/sda/datasets/memes/mami/annotations/validate.jsonl,
       # test: /mnt/sda/datasets/memes/mami/annotations/validate.jsonl,
       # predict: /mnt/sda/datasets/memes/mami/annotations/validate.jsonl
-      train: /mnt/sdb/aditi/hconvert/mami/annotations/train.jsonl,
-      validate: /mnt/sdb/aditi/hconvert/mami/annotations/val.jsonl,
-      test: /mnt/sdb/aditi/hconvert/mami/annotations/test.jsonl,
-      predict: /mnt/sdb/aditi/hconvert/mami/annotations/test.jsonl,
+      train: /Scratch/datasets/mami/annotations/train.jsonl,
+      validate: /Scratch/datasets/mami/annotations/test.jsonl,
+      test: /Scratch/datasets/mami/annotations/test.jsonl,
+      predict: /Scratch/datasets/mami/annotations/test.jsonl,
     }
     auxiliary_dicts: {}
     input_template: "question: is it hateful? context: {text}"
@@ -56,7 +56,7 @@ data:
       1: "yes"
     }
     shuffle_train: True
-    batch_size: 8
+    batch_size: 32
     labels:
     - shaming
     - misogynous
