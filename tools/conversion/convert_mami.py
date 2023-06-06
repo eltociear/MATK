@@ -187,7 +187,7 @@ def main(dataset_dir: str, processed_dir: str, process_data: str):
 
     # create the new original file
     new_train_fp = os.path.join(processed_dir, "mami", "annotations", "train.jsonl")
-    new_val_fp = os.path.join(processed_dir, "mami", "annotations", "val.jsonl")
+    new_val_fp = os.path.join(processed_dir, "mami", "annotations", "validate.jsonl")
     new_test_fp = os.path.join(processed_dir, "mami", "annotations", "test.jsonl")
     os.makedirs(os.path.dirname(new_train_fp), exist_ok=True)
 

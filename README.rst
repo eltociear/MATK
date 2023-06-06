@@ -100,7 +100,7 @@ Make sure your custom dataset folder's tree looks similar to the following:
    ├── annotations
    │   ├── test.jsonl
    │   ├── train.jsonl
-   │   └── val.jsonl
+   │   └── validate.jsonl
    └── images
       ├── 1.jpg
       └── 2.jpg
@@ -153,27 +153,25 @@ For example, if you wish to train FLAVA on FHM dataset, run the following comman
   bash scripts/fhm/train/flava.sh
 
 
-Project Status
+MATK Overview
 ~~~~~~~~~~~~~~
-+-------------------+---------------+---------------+---------------+---------------+---------------+---------------+
-|                   | BART          | PromptHate    | FLAVA         | VL-T5         | LXMERT        | VisualBERT    |
-+===================+===============+===============+===============+===============+===============+===============+
-| FHM               | In progress   | |green_check| | |green_check| | |green_check| | |green_check| | |green_check| |
-+-------------------+---------------+---------------+---------------+---------------+---------------+---------------+
-| Fine Grained FHM  | |green_check| | In progress   | In progress   | In progress   | In progress   | In progress   |
-+-------------------+---------------+---------------+---------------+---------------+---------------+---------------+
-| MAMI              | In progress   | |green_check| | |green_check| | |green_check| | |green_check| | |green_check| |
-+-------------------+---------------+---------------+---------------+---------------+---------------+---------------+
-| HarMeme           | In progress   | |green_check| | |green_check| | |green_check| | |green_check| | |green_check| |
-+-------------------+---------------+---------------+---------------+---------------+---------------+---------------+
-| Harm-C + Harm-P   | In progress   | In progress   | In progress   | In progress   | In progress   | In progress   |
-+-------------------+---------------+---------------+---------------+---------------+---------------+---------------+
-| Misogynistic-MEME | In progress   | In progress   | In progress   | In progress   | In progress   | In progress   |
-+-------------------+---------------+---------------+---------------+---------------+---------------+---------------+
-| MET-Meme          | In progress   | In progress   | In progress   | In progress   | In progress   | In progress   |
-+-------------------+---------------+---------------+---------------+---------------+---------------+---------------+
++------------------+---------------+---------------+---------------+---------------+----------------------------------------------------+
+|                  | BART          | FLAVA         | LXMERT        | VisualBERT    | Remarks                                            |
++==================+===============+===============+===============+===============+====================================================+
+| FHM              | |green_check| | |green_check| | |green_check| | |green_check| |                                                    |
++------------------+---------------+---------------+---------------+---------------+----------------------------------------------------+
+| Fine Grained FHM | |green_check| | |green_check| | |green_check| | |green_check| | Protected target and protected group not supported |
++------------------+---------------+---------------+---------------+---------------+----------------------------------------------------+
+| MAMI             | |green_check| | |green_check| | |green_check| | |green_check| |                                                    |
++------------------+---------------+---------------+---------------+---------------+----------------------------------------------------+
+| HarMeme          | |green_check| | |green_check| | |green_check| | |green_check| |                                                    |
++------------------+---------------+---------------+---------------+---------------+----------------------------------------------------+
+| Harm-C + Harm-P  | |green_check| | |green_check| | |green_check| | |green_check| |                                                    |
++------------------+---------------+---------------+---------------+---------------+----------------------------------------------------+
 
-
+Model Performance
+~~~~~~~~~~~~~~
+Coming soon...
 
 **************************
 Meme Models Analysis

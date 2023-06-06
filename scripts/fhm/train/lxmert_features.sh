@@ -1,1 +1,1 @@
-python3 main.py fit --config configs/fhm/hate_cls/lxmert_features.yaml --seed_everything 1111
+python3 main.py fit --config configs/fhm/normal/lxmert_features.yaml --seed_everything 1111

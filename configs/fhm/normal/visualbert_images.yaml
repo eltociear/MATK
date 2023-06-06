@@ -9,15 +9,15 @@ trainer:
   callbacks: 
     - class_path: lightning.pytorch.callbacks.ModelCheckpoint
       init_args:
-        dirpath: checkpoints/visualbert_images/fhm/hate
-        monitor: hate_validate_auroc
+        dirpath: checkpoints/visualbert_images/fhm/normal
+        monitor: label_validate_auroc
         mode: max
         save_top_k: 1
         every_n_epochs: 1
         save_last: True
     - class_path: lightning.pytorch.callbacks.EarlyStopping
       init_args:
-        monitor: hate_validate_auroc
+        monitor: label_validate_auroc
         patience: 5
         mode: max
 
@@ -26,7 +26,7 @@ model:
   init_args:
     model_class_or_path: uclanlp/visualbert-vqa-coco-pre
     cls_dict: {
-      "hate": 2
+      "label": 2
     }
 data:
   class_path: datamodules.VLImagesDataModule
@@ -40,12 +40,12 @@ data:
       predict: /Scratch/mingshan/datasets/fhm/images/img/
     }
     annotation_filepaths: {
-      train: /Scratch/mingshan/datasets/fhm_finegrained/annotations/train.jsonl,
-      validate: /Scratch/mingshan/datasets/fhm_finegrained/annotations/dev_seen.jsonl,
-      test: /Scratch/mingshan/datasets/fhm_finegrained/annotations/dev_seen.jsonl,
-      predict: /Scratch/mingshan/datasets/fhm_finegrained/annotations/dev_seen.jsonl
+      train: /Scratch/mingshan/datasets/fhm_normal/annotations/train.jsonl,
+      validate: /Scratch/mingshan/datasets/fhm_normal/annotations/dev_seen.jsonl,
+      test: /Scratch/mingshan/datasets/fhm_normal/annotations/dev_seen.jsonl,
+      predict: /Scratch/mingshan/datasets/fhm_normal/annotations/dev_seen.jsonl
     }
     shuffle_train: True
     batch_size: 32
     labels:
-    - hate
+    - label

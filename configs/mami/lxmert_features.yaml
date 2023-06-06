@@ -2,35 +2,24 @@
 seed_everything: 1111
 trainer:
   accelerator: gpu
-  devices: 2
-  strategy: ddp_find_unused_parameters_true
-  max_epochs: 50
+  devices: 1
+  max_epochs: 30
   accumulate_grad_batches: 1
   enable_checkpointing: True
-  limit_train_batches: 1
-  # callbacks: 
-  #   - class_path: lightning.pytorch.callbacks.ModelCheckpoint
-  #     init_args:
-  #       dirpath: checkpoints/lxmert/fhm
-  #       monitor: val_auroc
-  #       mode: max
-  #       save_top_k: 1
-  #       every_n_epochs: 1
-  #       save_last: True
-  #   - class_path: lightning.pytorch.callbacks.EarlyStopping
-  #     init_args:
-  #       monitor: val_auroc
-  #       patience: 5
-  #       mode: max
-  #   - class_path: models.lxmert.MetricCallback
-  #     init_args: 
-  #       output_dict: {
-  #       "shaming": 2,
-  #       "misogynous": 2,
-  #       "objectification": 2,
-  #       "violence": 2,
-  #       "stereotype": 2
-  #     }
+  callbacks: 
+    - class_path: lightning.pytorch.callbacks.ModelCheckpoint
+      init_args:
+        dirpath: checkpoints/lxmert_features/mami
+        monitor: hate_validate_auroc
+        mode: max
+        save_top_k: 1
+        every_n_epochs: 1
+        save_last: True
+    - class_path: lightning.pytorch.callbacks.EarlyStopping
+      init_args:
+        monitor: hate_validate_auroc
+        patience: 5
+        mode: max
 model:
   class_path: models.lxmert.LxmertClassificationModel
   init_args:
@@ -47,16 +36,16 @@ data:
   init_args:
     tokenizer_class_or_path: unc-nlp/lxmert-base-uncased
     feats_dirs: {
-      train: /mnt/sda/datasets/memes/mami/features/train/unc-nlp/frcnn-vg-finetuned/,
-      validate: /mnt/sda/datasets/memes/mami/features/validate/unc-nlp/frcnn-vg-finetuned/,
-      test: /mnt/sda/datasets/memes/mami/features/validate/unc-nlp/frcnn-vg-finetuned/,
-      predict: /mnt/sda/datasets/memes/mami/features/validate/unc-nlp/frcnn-vg-finetuned/
+      train: /Scratch/datasets/mami/features/train/unc-nlp/frcnn-vg-finetuned,
+      validate: /Scratch/datasets/mami/features/validate/unc-nlp/frcnn-vg-finetuned,
+      test: /Scratch/datasets/mami/features/test/unc-nlp/frcnn-vg-finetuned,
+      predict: /Scratch/datasets/mami/features/test/unc-nlp/frcnn-vg-finetuned,
     }
     annotation_filepaths: {
-      train: /mnt/sda/datasets/memes/mami/annotations/train.jsonl,
-      validate: /mnt/sda/datasets/memes/mami/annotations/validate.jsonl,
-      test: /mnt/sda/datasets/memes/mami/annotations/validate.jsonl,
-      predict: /mnt/sda/datasets/memes/mami/annotations/validate.jsonl
+      train: /Scratch/datasets/mami/annotations/train.jsonl,
+      validate: /Scratch/datasets/mami/annotations/test.jsonl,
+      test: /Scratch/datasets/mami/annotations/test.jsonl,
+      predict: /Scratch/datasets/mami/annotations/test.jsonl,
     }
     shuffle_train: True
     labels:
@@ -65,4 +54,4 @@ data:
     - objectification
     - violence
     - stereotype
-    batch_size: 16
+    batch_size: 32
