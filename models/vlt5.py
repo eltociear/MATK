@@ -142,7 +142,7 @@ class VLT5ClassificationModel(pl.LightningModule):
 
 
     def validation_step(self, batch, batch_idx):
-        
+        print(batch.keys())
         input_ids = batch['input_ids']
         attention_mask = batch['attention_mask']
         token_type_ids = batch['token_type_ids']
@@ -171,8 +171,7 @@ class VLT5ClassificationModel(pl.LightningModule):
         outputs = self.model(
             input_ids=input_ids,
             attention_mask=attention_mask,
-            visual_feats=visual_feats,
-            visual_pos = visual_pos,
+            vis_inputs=(visual_feats,visual_pos),
             token_type_ids = token_type_ids
         )
 

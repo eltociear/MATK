@@ -187,7 +187,6 @@ class JointEncoder(T5Stack):
             inputs_embeds = self.embed_tokens(input_ids)
 
         B, L = inputs_embeds.size()[:-1]
-
         vis_feats = vis_inputs[0]
         boxes = vis_inputs[1]
         img_order_ids = None

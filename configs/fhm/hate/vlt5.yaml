@@ -1,60 +1,34 @@
-# lightning.pytorch==2.0.0
+---
 seed_everything: 1111
 trainer:
   accelerator: gpu
   devices: 1
   max_epochs: 30
   accumulate_grad_batches: 1
-  enable_checkpointing: True
-  callbacks: 
-    - class_path: lightning.pytorch.callbacks.ModelCheckpoint
-      init_args:
-        dirpath: checkpoints/flava/fhm
-        monitor: hate_validate_auroc
-        mode: max
-        save_top_k: 1
-        every_n_epochs: 1
-        save_last: True
-    - class_path: lightning.pytorch.callbacks.EarlyStopping
-      init_args:
-        monitor: hate_validate_auroc
-        patience: 5
-        mode: max
-  
+  enable_checkpointing: true
 model:
   class_path: models.vlt5.VLT5ClassificationModel
   init_args:
     model_class_or_path: t5-base
-    frcnn_class_or_path: unc-nlp/frcnn-vg-finetuned
-    cls_dict: {
+    cls_dict:
       "label": 2
-    }
 data:
-  class_path: datamodules.VLImagesDataModule
+  class_path: datamodules.VLFeaturesDataModule
   init_args:
     tokenizer_class_or_path: t5-base
-    frcnn_class_or_path: unc-nlp/frcnn-vg-finetuned
-    image_dirs: {
-      # train: /mnt/sda/datasets/memes/fhm/images/img/,
-      # validate: /mnt/sda/datasets/memes/fhm/images/img/,
-      # test: /mnt/sda/datasets/memes/fhm/images/img/,
-      # predict: /mnt/sda/datasets/memes/fhm/images/img/
-      train: /mnt/sdb/aditi/hconvert/fhm/images,
-      validate: /mnt/sdb/aditi/hconvert/fhm/images,
-      test: /mnt/sdb/aditi/hconvert/fhm/images,
-      predict: /mnt/sdb/aditi/hconvert/fhm/images
+    feats_dirs: {
+      train: /mnt/sdb/aditi/datasets/fhm/features/unc-nlp/frcnn-vg-finetuned/,
+      validate: /mnt/sdb/aditi/datasets/fhm/features/unc-nlp/frcnn-vg-finetuned/,
+      test: /mnt/sdb/aditi/datasets/fhm/features/unc-nlp/frcnn-vg-finetuned/,
+      predict: /mnt/sdb/aditi/datasets/fhm/features/unc-nlp/frcnn-vg-finetuned/
     }
     annotation_filepaths: {
-      # train: /mnt/sda/datasets/memes/fhm_finegrained/annotations/train.jsonl,
-      # validate: /mnt/sda/datasets/memes/fhm_finegrained/annotations/dev_seen.jsonl,
-      # test: /mnt/sda/datasets/memes/fhm_finegrained/annotations/dev_seen.jsonl,
-      # predict: /mnt/sda/datasets/memes/fhm_finegrained/annotations/dev_seen.jsonl
       train: /mnt/sdb/aditi/hconvert/fhm/annotations/train.jsonl,
       validate: /mnt/sdb/aditi/hconvert/fhm/annotations/dev_seen.jsonl,
       test: /mnt/sdb/aditi/hconvert/fhm/annotations/dev_seen.jsonl,
       predict: /mnt/sdb/aditi/hconvert/fhm/annotations/dev_seen.jsonl
     }
-    shuffle_train: True
-    labels:
-    - label
+    shuffle_train: true
     batch_size: 4
+    labels:
+      - label
