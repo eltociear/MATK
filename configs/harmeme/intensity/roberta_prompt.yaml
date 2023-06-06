@@ -2,15 +2,14 @@
 seed_everything: 1111
 trainer:
   accelerator: gpu
-  devices: 2
-  strategy: ddp_find_unused_parameters_true
-  max_epochs: 50
+  devices: 1
+  max_epochs: 30
   accumulate_grad_batches: 1
   enable_checkpointing: True
   callbacks: 
     - class_path: lightning.pytorch.callbacks.ModelCheckpoint
       init_args:
-        dirpath: checkpoints/roberta/fhm
+        dirpath: checkpoints/roberta_prompt/harmeme
         monitor: val_auroc
         mode: max
         save_top_k: 1
@@ -25,38 +24,37 @@ model:
   class_path: models.roberta_prompt_model.PromptModel
   init_args:
     model_class_or_path: roberta-large
-    label_list: 
-      - 205
-      - 1099
     opt: 
+      UNIMODAL : False
+      FEAT_DIM : 2048
+      ROBERTA_DIM : 512
+      FC_DROPOUT : 0.4
+      MID_DIM : 512
+      TRANS_LAYER : 1
+      NUM_HEAD : 8
       FINE_GRIND : False
       WEIGHT_DECAY : 0.01
       LR_RATE : 1e-05
       EPS : 1e-08
       FIX_LAYERS : 0
-    
+    label_list: 
+      - 205
+      - 1099
+
 data:
-  class_path: datamodules.prompthate_data.MultimodalDataModule
+  class_path: datamodules.datasets.prompthate_data.MultimodalDataModule
   init_args:
     model_class_or_path: roberta-large
     shuffle_train: True
-    batch_size: 32
+    batch_size: 4
     opt: 
       DATASET : harm
       FEW_SHOT : False
       FINE_GRIND : False
       NUM_SHOTS : 16
-      MODEL : pbm
-      UNIMODAL : False
-      DATA : /mnt/sdb/aditi/multimodal-memes-toolkit/datamodules/data
-      CAPTION_PATH : /mnt/sdb/aditi/multimodal-memes-toolkit/preprocessing/clipcap
-      RESULT : ./result
-      FEAT_DIM : 2048
-      CLIP_DIM : 512
-      BERT_DIM : 768
-      ROBERTA_DIM : 1024
-      NUM_FOLD : 5
-      EMB_DIM : 300
+      DATA : /mnt/sdb/aditi/hconvert/prompthate/data ## attention
+      CAPTION_PATH : /mnt/sdb/aditi/hconvert/prompthate/caption ## attention
+      ROBERTA_DIM : 512
       NUM_LABELS : 2
       POS_WORD : good
       NEG_WORD : bad
@@ -65,32 +63,12 @@ data:
       IMG_RATE : 0.5
       TEXT_RATE : 0.5
       CLIP_CLEAN : False
-      MULTI_QUERY : True
-      NUM_QUERIES : 4
-      EMB_DROPOUT : 0.0
-      FC_DROPOUT : 0.4
-      WEIGHT_DECAY : 0.01
-      LR_RATE : 1e-05
-      EPS : 1e-08
-      BATCH_SIZE : 16
-      FIX_LAYERS : 0
-      MID_DIM : 512
-      NUM_HIDDEN : 512
       LENGTH : 64
       TOTAL_LENGTH : 256
-      PREFIX_LENGTH : 10
-      NUM_SAMPLE : 1
-      NUM_LAYER : 8
-      MODEL_NAME : roberta-large
       PRETRAIN_DATA : conceptual
       IMG_VERSION : clean
-      MAPPING_TYPE : transformer
       ADD_ENT : True
       ADD_DEM : True
       DEBUG : False
-      SAVE : False
-      SAVE_NUM : 1
       SEED : 1111
-      WARM_UP : 2000
-      TRANS_LAYER : 1
-      NUM_HEAD : 8
+      NUM_SAMPLE : 1

@@ -9,7 +9,7 @@ trainer:
   callbacks: 
     - class_path: lightning.pytorch.callbacks.ModelCheckpoint
       init_args:
-        dirpath: checkpoints/flava/fhm
+        dirpath: checkpoints/roberta_base/fhm/hate
         monitor: val_auroc
         mode: max
         save_top_k: 1
@@ -37,7 +37,7 @@ data:
   init_args:
     model_class_or_path: roberta-large
     shuffle_train: True
-    batch_size: 32
+    batch_size: 4
     opt: 
       DATASET : mem
       FEW_SHOT : False

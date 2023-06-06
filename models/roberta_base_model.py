@@ -73,8 +73,8 @@ class BaseModel(pl.LightningModule):
         self.train_acc(logits, target.argmax(dim=-1))
         self.train_auroc(logits, target.argmax(dim=-1))
         self.log('train_loss', loss, prog_bar=True, on_step=True, on_epoch=True, sync_dist=True)
-        self.log('train_acc', self.train_acc, on_step=True, on_epoch=True, sync_dist=True)
-        self.log('train_auroc', self.train_auroc, on_step=True, on_epoch=True, sync_dist=True)
+        self.log('train_acc', self.train_acc, on_step=False, on_epoch=True, sync_dist=True)
+        self.log('train_auroc', self.train_auroc, on_step=False, on_epoch=True, sync_dist=True)
         return loss
 
     def validation_step(self, batch, batch_idx):
@@ -94,8 +94,8 @@ class BaseModel(pl.LightningModule):
         self.val_acc(logits, target.argmax(dim=-1))
         self.val_auroc(logits, target.argmax(dim=-1))
         self.log('val_loss', loss, prog_bar=True, on_step=True, on_epoch=True, sync_dist=True)
-        self.log('val_acc', self.val_acc, on_step=True, on_epoch=True, sync_dist=True)
-        self.log('val_auroc', self.val_auroc, on_step=True, on_epoch=True, sync_dist=True)
+        self.log('val_acc', self.val_acc, on_step=False, on_epoch=True, sync_dist=True)
+        self.log('val_auroc', self.val_auroc, on_step=False, on_epoch=True, sync_dist=True)
 
         return loss
 

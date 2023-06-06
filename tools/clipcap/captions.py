@@ -16,7 +16,7 @@ import random
 import pickle as pkl
 
 
-def main(CLEAN_IMG_PATH):
+def main(clean_img_dir ,model_path, output_dir):
 
     def read_json(path):
         data=json.load(open(path,'r'))
@@ -31,10 +31,10 @@ def main(CLEAN_IMG_PATH):
     torch.cuda.set_device(CUDA_DEVICE)
     device = torch.device("cuda:"+str(CUDA_DEVICE))
 
-    pretrain_data='conceptual'#or coco
-    save_path = os.path.join(os.path.dirname(''), "pretrained_models")
-    os.makedirs(save_path, exist_ok=True)
-    model_path = os.path.join(save_path, pretrain_data+'_weights.pt')
+    # pretrain_data='conceptual'#or coco
+    # save_path = os.path.join(os.path.dirname(''), "pretrained_models")
+    # os.makedirs(save_path, exist_ok=True)
+    # model_path = os.path.join(save_path, pretrain_data+'_weights.pt')
 
     N = type(None)
     V = np.array
@@ -245,13 +245,15 @@ def main(CLEAN_IMG_PATH):
     use_beam_search = True
 
     #generating image captions over all images
-    files=os.listdir(CLEAN_IMG_PATH)
+    files=os.listdir(clean_img_dir)
     total={}
     #random.shuffle(files)
     for i,f in enumerate(files):
         if i%200==0:
             print ('Already finished:',i*100.0/len(files))
-        img_path=os.path.join(CLEAN_IMG_PATH,f)
+        if i == 200:
+            break
+        img_path=os.path.join(clean_img_dir,f)
         file_feat=Image.open(img_path)
         clip_feat=preprocess(file_feat).unsqueeze(0).to(device)
         with torch.no_grad():
@@ -262,9 +264,12 @@ def main(CLEAN_IMG_PATH):
         else:
             generated_text_prefix = generate2(model, tokenizer, embed=prefix_embed)
         total[f.split('.')[0]]=generated_text_prefix 
-    pkl_path = os.path.join(os.path.dirname(''), "harm")
-    os.makedirs(pkl_path, exist_ok=True)
-    pkl.dump(total,open('harm/clean_captions.pkl','wb'))
+    # Create the directory path if it doesn't exist
+    os.makedirs(os.path.dirname(output_dir), exist_ok=True)
+
+    # Dump the data to the specified path
+    with open(output_dir, 'wb') as file:
+        pkl.dump(total, file)
 
 
 if __name__ == '__main__':
@@ -272,13 +277,16 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     # /mnt/sdb/aditi/mmf/data/datasets/memes/defaults/images
     # add arguments
-    parser.add_argument('--clean_img_path', type=str, help='Path to directory containing cleaned images',required=True)
-
+    parser.add_argument('--clean-img-dir', type=str, help='Path to directory containing cleaned images',required=True)
+    parser.add_argument('--model-dir', type=str, help='Path to file with pretrained model weights',required=True)
+    parser.add_argument('--output-dir', type=str, help='Path that should contained cleaned captions',required=True)
     # parse arguments
     args = parser.parse_args()
 
     # calculate square
-    clean_img_path = args.clean_img_path 
-    main(clean_img_path)
+    clean_img_dir = args.clean_img_dir
+    model_dir = args.model_dir
+    output_dir = args.output_dir
+    main(clean_img_dir, model_dir, output_dir)
 
     
