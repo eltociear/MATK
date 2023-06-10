@@ -76,8 +76,8 @@ class T5ClassificationModel(pl.LightningModule):
         self.val_auroc(logits, targets)
         
         self.log('val_loss', outputs.loss, prog_bar=True, sync_dist=True)
-        self.log('val_acc', self.val_acc, on_step=True, on_epoch=True, sync_dist=True)
-        self.log('val_auroc', self.val_auroc, on_step=True, on_epoch=True, sync_dist=True)
+        self.log('val_acc', self.val_acc, prog_bar=True, on_step=True, on_epoch=True, sync_dist=True)
+        self.log('val_auroc', self.val_auroc, prog_bar=True, on_step=True, on_epoch=True, sync_dist=True)
 
         return outputs.loss
     

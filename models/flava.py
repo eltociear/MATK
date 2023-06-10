@@ -41,8 +41,8 @@ class FlavaClassificationModel(pl.LightningModule):
         auroc_metric(preds, targets)
 
         self.log(f'{cls_name}_{stage}_loss', loss, prog_bar=True)
-        self.log(f'{cls_name}_{stage}_acc', accuracy_metric, on_step=False, on_epoch=True, sync_dist=True)
-        self.log(f'{cls_name}_{stage}_auroc', auroc_metric, on_step=False, on_epoch=True, sync_dist=True)
+        self.log(f'{cls_name}_{stage}_acc', accuracy_metric, prog_bar=True, on_step=False, on_epoch=True, sync_dist=True)
+        self.log(f'{cls_name}_{stage}_auroc', auroc_metric, prog_bar=True, on_step=False, on_epoch=True, sync_dist=True)
 
 
     def training_step(self, batch, batch_idx):
