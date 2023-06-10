@@ -1,6 +1,3 @@
 __pycache__/
 checkpoints/
 lightning_logs/
-fhm-lxmert.log
-fhm-visualbert.log
-fine-lxmert.log
