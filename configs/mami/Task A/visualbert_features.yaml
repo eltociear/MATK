@@ -11,48 +11,43 @@ trainer:
     - class_path: lightning.pytorch.callbacks.ModelCheckpoint
       init_args:
         dirpath: checkpoints/visualbert_features/mami
-        monitor: hate_validate_auroc
+        monitor: misogynous_validate_f1
         mode: max
         save_top_k: 1
         every_n_epochs: 1
         save_last: True
     - class_path: lightning.pytorch.callbacks.EarlyStopping
       init_args:
-        monitor: hate_validate_auroc
+        monitor: misogynous_validate_f1
         patience: 5
         mode: max
+ckpt_path: /mnt/sdb/aditi/MATK/checkpoints/visualbert_features/mami/last-v4.ckpt
 model:
   class_path: models.visualbert.VisualBertClassificationModel
   init_args:
     model_class_or_path: uclanlp/visualbert-vqa-coco-pre
     cls_dict: {
-      "shaming": 2,
       "misogynous": 2,
-      "objectification": 2,
-      "violence": 2,
-      "stereotype": 2
+      "non_misogynous": 2,
     }
 data:
   class_path: datamodules.VLFeaturesDataModule
   init_args:
     tokenizer_class_or_path: unc-nlp/lxmert-base-uncased
     feats_dirs: {
-      train: /Scratch/datasets/mami/features/train/unc-nlp/frcnn-vg-finetuned,
-      validate: /Scratch/datasets/mami/features/validate/unc-nlp/frcnn-vg-finetuned,
-      test: /Scratch/datasets/mami/features/test/unc-nlp/frcnn-vg-finetuned,
-      predict: /Scratch/datasets/mami/features/test/unc-nlp/frcnn-vg-finetuned,
+      train: /mnt/sdb/aditi/datasets/mami/features/train/unc-nlp/frcnn-vg-finetuned,
+      validate: /mnt/sdb/aditi/datasets/mami/features/validate/unc-nlp/frcnn-vg-finetuned,
+      test: /mnt/sdb/aditi/datasets/mami/features/test/unc-nlp/frcnn-vg-finetuned,
+      predict: /mnt/sdb/aditi/datasets/mami/features/test/unc-nlp/frcnn-vg-finetuned,
     }
     annotation_filepaths: {
-      train: /Scratch/datasets/mami/annotations/train.jsonl,
-      validate: /Scratch/datasets/mami/annotations/test.jsonl,
-      test: /Scratch/datasets/mami/annotations/test.jsonl,
-      predict: /Scratch/datasets/mami/annotations/test.jsonl,
+      train: /mnt/sdb/aditi/hconvert/mami/annotations/modified_train.jsonl,
+      validate: /mnt/sdb/aditi/hconvert/mami/annotations/modified_val.jsonl,
+      test: /mnt/sdb/aditi/hconvert/mami/annotations/modified_test.jsonl,
+      predict: /mnt/sdb/aditi/hconvert/mami/annotations/modified_test.jsonl,
     }
     shuffle_train: True
     labels:
-    - shaming
     - misogynous
-    - objectification
-    - violence
-    - stereotype
-    batch_size: 32
+    - non_misogynous
+    batch_size: 16

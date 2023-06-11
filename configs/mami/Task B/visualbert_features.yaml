@@ -1,0 +1,58 @@
+# lightning.pytorch==2.0.0
+seed_everything: 1111
+trainer:
+  default_root_dir: lightning_logs/visualbert_features/mami
+  accelerator: gpu
+  devices: 1
+  max_epochs: 30
+  accumulate_grad_batches: 1
+  enable_checkpointing: True
+  callbacks: 
+    - class_path: lightning.pytorch.callbacks.ModelCheckpoint
+      init_args:
+        dirpath: checkpoints/visualbert_features/mami
+        monitor: misogynous_validate_auroc
+        mode: max
+        save_top_k: 1
+        every_n_epochs: 1
+        save_last: True
+    - class_path: lightning.pytorch.callbacks.EarlyStopping
+      init_args:
+        monitor: misogynous_validate_auroc
+        patience: 5
+        mode: max
+model:
+  class_path: models.visualbert.VisualBertClassificationModel
+  init_args:
+    model_class_or_path: uclanlp/visualbert-vqa-coco-pre
+    cls_dict: {
+      "misogynous": 2,
+      "shaming": 2,
+      "stereotype": 2,
+      "objectification": 2,
+      "violence": 2,
+    }
+data:
+  class_path: datamodules.VLFeaturesDataModule
+  init_args:
+    tokenizer_class_or_path: unc-nlp/lxmert-base-uncased
+    feats_dirs: {
+      train: /mnt/sdb/aditi/datasets/mami/features/train/unc-nlp/frcnn-vg-finetuned,
+      validate: /mnt/sdb/aditi/datasets/mami/features/validate/unc-nlp/frcnn-vg-finetuned,
+      test: /mnt/sdb/aditi/datasets/mami/features/test/unc-nlp/frcnn-vg-finetuned,
+      predict: /mnt/sdb/aditi/datasets/mami/features/test/unc-nlp/frcnn-vg-finetuned,
+    }
+    annotation_filepaths: {
+      train: /mnt/sdb/aditi/hconvert/mami/annotations/modified_train.jsonl,
+      validate: /mnt/sdb/aditi/hconvert/mami/annotations/modified_val.jsonl,
+      test: /mnt/sdb/aditi/hconvert/mami/annotations/modified_test.jsonl,
+      predict: /mnt/sdb/aditi/hconvert/mami/annotations/modified_test.jsonl,
+    }
+    shuffle_train: True
+    labels:
+    - misogynous
+    - shaming
+    - stereotype
+    - objectification
+    - violence
+    batch_size: 16

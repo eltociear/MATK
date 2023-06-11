@@ -26,11 +26,11 @@ model:
   init_args:
     model_class_or_path: facebook/flava-full
     cls_dict: {
-      "shaming": 2,
       "misogynous": 2,
+      "shaming": 2,
+      "stereotype": 2,
       "objectification": 2,
       "violence": 2,
-      "stereotype": 2
     }
 data:
   class_path: datamodules.VLImagesDataModule
@@ -51,9 +51,9 @@ data:
     }
     shuffle_train: True
     labels:
-    - shaming
     - misogynous
+    - shaming
+    - stereotype
     - objectification
     - violence
-    - stereotype
     batch_size: 32

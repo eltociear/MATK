@@ -44,7 +44,7 @@ model:
       - 1099
 
 data:
-  class_path: datamodules.datasets.prompthate_data.MultimodalDataModule
+  class_path: datamodules.MultimodalDataModule
   init_args:
     model_class_or_path: roberta-large
     shuffle_train: True

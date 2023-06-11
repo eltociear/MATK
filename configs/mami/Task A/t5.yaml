@@ -1,7 +1,7 @@
 # lightning.pytorch==2.0.0
 seed_everything: 1111
 trainer:
-  default_root_dir: lightning_logs/bart/mami
+  default_root_dir: lightning_logs/t5/mami
   accelerator: gpu
   devices: 1
   max_epochs: 30
@@ -10,7 +10,7 @@ trainer:
   callbacks: 
     - class_path: lightning.pytorch.callbacks.ModelCheckpoint
       init_args:
-        dirpath: checkpoints/bart/mami
+        dirpath: checkpoints/t5/mami
         monitor: hate_validate_auroc
         mode: max
         save_top_k: 1
@@ -22,15 +22,12 @@ trainer:
         patience: 5
         mode: max
 model:
-  class_path: models.bart.BARTCasualModel
+  class_path: models.t5.T5ClassificationModel
   init_args:
-    model_class_or_path: facebook/bart-large
+    model_class_or_path: t5-large
     labels:
-    - shaming
     - misogynous
-    - objectification
-    - violence
-    - stereotype
+    - non_misogynous
     label2word: {
       0: "no",
       1: "yes"
@@ -38,7 +35,7 @@ model:
 data:
   class_path: datamodules.LanguageDataModule
   init_args:
-    tokenizer_class_or_path: facebook/bart-large
+    tokenizer_class_or_path: t5-large
     annotation_filepaths: {
       # train: /mnt/sda/datasets/memes/mami/annotations/train.jsonl,
       # validate: /mnt/sda/datasets/memes/mami/annotations/validate.jsonl,
@@ -57,10 +54,7 @@ data:
       1: "yes"
     }
     shuffle_train: True
-    labels:
-    - shaming
-    - misogynous
-    - objectification
-    - violence
-    - stereotype
     batch_size: 32
+    labels:
+    - misogynous
+    - non_misogynous

@@ -1,7 +1,7 @@
 # lightning.pytorch==2.0.0
 seed_everything: 1111
 trainer:
-  default_root_dir: lightning_logs/lxmert_features/mami
+  default_root_dir: lightning_logs/flava/mami
   accelerator: gpu
   devices: 1
   max_epochs: 30
@@ -10,7 +10,7 @@ trainer:
   callbacks: 
     - class_path: lightning.pytorch.callbacks.ModelCheckpoint
       init_args:
-        dirpath: checkpoints/lxmert_features/mami
+        dirpath: checkpoints/flava/mami
         monitor: hate_validate_auroc
         mode: max
         save_top_k: 1
@@ -22,25 +22,23 @@ trainer:
         patience: 5
         mode: max
 model:
-  class_path: models.lxmert.LxmertClassificationModel
+  class_path: models.flava.FlavaClassificationModel
   init_args:
-    model_class_or_path: unc-nlp/lxmert-base-uncased
+    model_class_or_path: facebook/flava-full
     cls_dict: {
-      "shaming": 2,
       "misogynous": 2,
-      "objectification": 2,
-      "violence": 2,
-      "stereotype": 2
+      "non_misogynous": 2,
     }
 data:
-  class_path: datamodules.VLFeaturesDataModule
+  class_path: datamodules.VLImagesDataModule
   init_args:
-    tokenizer_class_or_path: unc-nlp/lxmert-base-uncased
-    feats_dirs: {
-      train: /Scratch/datasets/mami/features/train/unc-nlp/frcnn-vg-finetuned,
-      validate: /Scratch/datasets/mami/features/validate/unc-nlp/frcnn-vg-finetuned,
-      test: /Scratch/datasets/mami/features/test/unc-nlp/frcnn-vg-finetuned,
-      predict: /Scratch/datasets/mami/features/test/unc-nlp/frcnn-vg-finetuned,
+    tokenizer_class_or_path: facebook/flava-full
+    frcnn_class_or_path: None
+    image_dirs: {
+      train: /Scratch/datasets/mami/images/img/train,
+      validate: /Scratch/datasets/mami/images/img/test,
+      test: /Scratch/datasets/mami/images/img/test,
+      predict: /Scratch/datasets/mami/images/img/test,
     }
     annotation_filepaths: {
       train: /Scratch/datasets/mami/annotations/train.jsonl,
@@ -50,9 +48,6 @@ data:
     }
     shuffle_train: True
     labels:
-    - shaming
     - misogynous
-    - objectification
-    - violence
-    - stereotype
+    - non_misogynous
     batch_size: 32

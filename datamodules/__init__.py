@@ -1,21 +1,27 @@
 import os
 import tqdm
 import pickle as pkl
-import numpy as np
-
 import lightning.pytorch as pl
-
 
 from torch.utils.data import DataLoader
 from transformers import AutoTokenizer
 
-from .datasets.datasets import LanguageDataset
+from .datasets.datasets import LanguageDataset, Multimodal_Data
 from .datasets.datasets import VLImagesDataset
 from .datasets.datasets import VLFeaturesDataset
 
 from datamodules.collators import get_collator
-
 from typing import List, Optional
+import os
+import pickle as pkl
+import numpy as np
+import torch
+import lightning.pytorch as pl
+from tqdm import tqdm
+from transformers import RobertaTokenizer
+from torch.utils.data import DataLoader
+from typing import Optional
+
 
 class VLFeaturesDataModule(pl.LightningDataModule):
     """
@@ -269,3 +275,43 @@ class LanguageDataModule(pl.LightningDataModule):
 
     def predict_dataloader(self):
         return DataLoader(self.predict, batch_size=self.batch_size, num_workers=8, collate_fn=self.collate_fn)
+
+class MultimodalDataModule(pl.LightningDataModule):
+    """
+    DataModule used for semantic segmentation in geometric generalization project
+    """
+
+    def __init__(self, model_class_or_path: str, batch_size: int, shuffle_train: bool, opt):
+        super().__init__()
+
+        self.batch_size = batch_size
+        self.shuffle_train = shuffle_train
+        self.opt = opt
+
+        self.tokenizer = RobertaTokenizer.from_pretrained(model_class_or_path)
+
+    def setup(self, stage: Optional[str] = None):
+        if stage == "fit" or stage is None:
+            self.train = Multimodal_Data(self.opt, self.tokenizer, self.opt['DATASET'], 'train', self.opt['SEED']-1111)
+
+            self.validate = Multimodal_Data(self.opt, self.tokenizer, self.opt['DATASET'],'test')
+
+        # Assign test dataset for use in dataloader(s)
+        if stage == "test" or stage is None:
+            self.test = Multimodal_Data(self.opt, self.tokenizer, self.opt['DATASET'], 'train', self.opt['SEED']-1111, 'test')
+
+        if stage == "predict" or stage is None:
+            self.predict = Multimodal_Data(self.opt, self.tokenizer, self.opt['DATASET'], 'train', self.opt['SEED']-1111, 'test')
+
+
+    def train_dataloader(self):
+        return DataLoader(self.train, batch_size=self.batch_size, num_workers=8, shuffle=self.shuffle_train)
+
+    def val_dataloader(self):
+        return DataLoader(self.validate, batch_size=self.batch_size, num_workers=8)
+
+    def test_dataloader(self):
+        return DataLoader(self.test, batch_size=self.batch_size, num_workers=8)
+
+    def predict_dataloader(self):
+        return DataLoader(self.predict, batch_size=self.batch_size, num_workers=8)

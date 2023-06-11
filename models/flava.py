@@ -31,18 +31,22 @@ class FlavaClassificationModel(pl.LightningModule):
             for key, value in cls_dict.items():
                 setattr(self, f"{key}_{stage}_acc", torchmetrics.Accuracy(task="multiclass", num_classes=value))
                 setattr(self, f"{key}_{stage}_auroc", torchmetrics.AUROC(task="multiclass", num_classes=value))
+                setattr(self, f"{key}_{stage}_f1", torchmetrics.F1(average='macro', num_classes=value))
        
 
     def compute_metrics_and_logs(self, cls_name, stage, loss, targets, preds):
         accuracy_metric = getattr(self, f"{cls_name}_{stage}_acc")
         auroc_metric = getattr(self, f"{cls_name}_{stage}_auroc")
+        f1_metric = getattr(self, f"{cls_name}_{stage}_f1")
 
         accuracy_metric(preds.argmax(dim=-1), targets)
         auroc_metric(preds, targets)
+        f1_metric(preds.argmax(dim=-1), targets)
 
         self.log(f'{cls_name}_{stage}_loss', loss, prog_bar=True)
         self.log(f'{cls_name}_{stage}_acc', accuracy_metric, prog_bar=True, on_step=False, on_epoch=True, sync_dist=True)
         self.log(f'{cls_name}_{stage}_auroc', auroc_metric, prog_bar=True, on_step=False, on_epoch=True, sync_dist=True)
+        self.log(f'{cls_name}_{stage}_f1', f1_metric, prog_bar=True, on_step=False, on_epoch=True, sync_dist=True)
 
 
     def training_step(self, batch, batch_idx):
