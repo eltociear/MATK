@@ -1,14 +1,33 @@
+import json
+import csv
 import os
 import torch.nn as nn
 import torch
-import json
 import pickle as pkl
 import numpy as np
 import torch
 import lightning.pytorch as pl
 from tqdm import tqdm
-
 import pandas as pd
+
+def _load_jsonl(filepath):
+    data = []
+    
+    with open(filepath, 'r')as f:
+        for line in f.readlines():
+            obj = json.loads(line)
+            data.append(obj)
+    
+    return data
+
+def _load_csv(file_path):
+    data = []
+    with open(file_path, 'r', encoding='utf-8-sig') as file:
+        reader = csv.DictReader(file, delimiter='\t')
+        for row in reader:
+            data.append(row)
+    return data
+
 
 def load_pkl(path):
     data=pkl.load(open(path,'rb'))

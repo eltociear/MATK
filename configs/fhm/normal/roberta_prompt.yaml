@@ -1,7 +1,6 @@
 # lightning.pytorch==2.0.0
 seed_everything: 1111
 trainer:
-  default_root_dir: lightning_logs/roberta_prompt/fhm/normal
   accelerator: gpu
   devices: 1
   max_epochs: 30
@@ -44,7 +43,7 @@ model:
       - 1099
 
 data:
-  class_path: datamodules.MultimodalDataModule
+  class_path: datamodules.modules.MultimodalDataModule
   init_args:
     model_class_or_path: roberta-large
     shuffle_train: True

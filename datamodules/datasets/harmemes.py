@@ -1,26 +1,86 @@
 import os
+import tqdm
 import numpy as np
-import torch
-from PIL import Image
-from tqdm import tqdm
-from .utils import load_pkl, read_json
-from .base import LanguageBase, VisionLanguageBase
-import random
-from typing import List
+import pickle as pkl
 
-class VLFeaturesDataset(VisionLanguageBase):
+from PIL import Image
+from . import utils
+
+from typing import List
+from torch.utils.data import Dataset
+
+
+INTENSITY_MAP = {
+    'not harmful': 0, 
+    'somewhat harmful': 1, 
+    'very harmful': 2
+}
+
+TARGET_MAP = {
+    'individual': 0, 
+    'organization': 1, 
+    'community': 2 , 
+    'society': 3
+}
+
+class HarmemesBase(Dataset):
     def __init__(
         self,
         annotation_filepath: str,
+        auxiliary_dicts: dict,
+        labels: List[str]
+    ):
+        self.annotations = self._preprocess_annotations(annotation_filepath)
+        self.auxiliary_data = self._load_auxiliary(auxiliary_dicts)
+        self.labels = labels
+
+    def _preprocess_annotations(self, annotation_filepath: str):
+        annotations = []
+
+        # load the default annotations
+        data = utils._load_jsonl(annotation_filepath)
+
+        record_id = 0
+        
+        # translate labels into numeric values
+        for record in tqdm.tqdm(data, desc="Preprocessing labels"):
+            record["img"] = record.pop("image")
+            record["intensity"] = INTENSITY_MAP[record["labels"][0]]
+            record["target"] = TARGET_MAP[record["labels"][1]] if len(record["labels"]) > 1 else -1
+            record["id"] = record_id
+            record_id += 1
+            annotations.append(record)
+        
+        return annotations
+
+    def _load_auxiliary(self, auxiliary_dicts: dict):
+        data = {}
+        for key, filepath in tqdm.tqdm(auxiliary_dicts.items(), desc="Loading auxiliary info"):
+            with open(filepath, "rb") as f:
+                data[key] = pkl.load(f)
+
+        return data
+
+    def __len__(self):
+        return len(self.annotations)
+
+
+class FasterRCNNDataset(HarmemesBase):
+    def __init__(
+        self,
+        annotation_filepath: str,
+        auxiliary_dicts: dict,
         labels: List[str],
         feats_dict: dict
     ):
-        super().__init__(annotation_filepath, None, labels)
+        super().__init__(annotation_filepath, auxiliary_dicts, labels)
         self.feats_dict = feats_dict
 
     def __getitem__(self, idx: int):
-        text = self.annotations.loc[idx, 'text']
-        image_id = self.annotations.loc[idx, 'img']
+        record = self.annotations[idx]
+
+        text = record['text']
+        image_id = record['img']
         id, _ = os.path.splitext(image_id)
 
         item = {
@@ -32,82 +92,88 @@ class VLFeaturesDataset(VisionLanguageBase):
         }
 
         for l in self.labels:
-            item[l] = self.annotations.loc[idx, l]
+            item[l] = record[l]
 
         return item
 
-class VLImagesDataset(VisionLanguageBase):
+
+class ImagesDataset(HarmemesBase):
     def __init__(
         self,
         annotation_filepath: str,
-        image_dir: str,
-        labels: List[str]
+        auxiliary_dicts: dict,
+        labels: List[str],
+        image_dir: str
     ):
-        super().__init__(annotation_filepath, image_dir, labels)
+        super().__init__(annotation_filepath, auxiliary_dicts, labels)
+        self.image_dir = image_dir
 
     def __getitem__(self, idx: int):
-        text = self.annotations.loc[idx, 'text']
-        image_id = self.annotations.loc[idx, 'img']
-        id, _ = os.path.splitext(image_id)
+        record = self.annotations[idx]
 
-        image_path = os.path.join(self.image_dir, image_id)
+        image_filename = record['img']
+        image_id, _ = os.path.splitext(image_filename)
+
+        image_path = os.path.join(self.image_dir, image_filename)
         image = Image.open(image_path)
         image = image.resize((224, 224))
         image = image.convert("RGB") if image.mode != "RGB" else image
 
         item = {
-            'id': id,
+            'id': record['id'],
             'image_id': image_id,
-            'text': text,
+            'text': record['text'],
             'image': np.array(image),
             'image_path': image_path
         }
 
         for l in self.labels:
-            item[l] = self.annotations.loc[idx, l]
+            item[l] = record[l]
 
         return item
 
-class LanguageDataset(LanguageBase):
+
+class TextDataset(HarmemesBase):
     def __init__(
         self,
         annotation_filepath: str,
         auxiliary_dicts: dict,
+        labels: List[str],
         input_template: str,
         output_template: str,
-        label2word: dict,
-        labels: List[str]
+        label2word: dict
     ):
-        super().__init__(annotation_filepath, auxiliary_dicts,
-                         input_template, output_template, label2word, 
-                         labels)
+        super().__init__(annotation_filepath, auxiliary_dicts, labels)
+        self.input_template = input_template
+        self.output_template = output_template
+        self.label2word = label2word
 
     def __getitem__(self, idx: int):
-        text = self.annotations.loc[idx, 'text']
-        image_id = self.annotations.loc[idx, 'img']
-        id, _ = os.path.splitext(image_id)
+        record = self.annotations[idx]
 
         # Format the input template
-        input_kwargs = {"text": text}
+        input_kwargs = {"text": record['text']}
         for key, data in self.auxiliary_data.items():
             input_kwargs[key] = data[f"{id:05}"]
 
+        image_id, _ = os.path.splitext(record['img'])
+
         item = {
-            'id': id,
+            'id': record["id"],
             'image_id': image_id,
             'text': self.input_template.format(**input_kwargs)
         }
 
         for l in self.labels:
-            label = self.annotations.loc[idx, l]
+            label = record[l]
             item[l] = self.output_template.format(label=self.label2word[label])
 
         return item
 
-class Multimodal_Data():
+class MultimodalDataset():
     #mem, off, harm
     def __init__(self,opt,tokenizer,dataset,mode='train',few_shot_index=0):
-        super(Multimodal_Data,self).__init__()
+        super(MultimodalDataset,self).__init__()
         self.opt=opt
         self.tokenizer = tokenizer
         self.mode=mode

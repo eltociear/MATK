@@ -1,26 +1,70 @@
 import os
-import numpy as np
 import torch
-from PIL import Image
-from tqdm import tqdm
-from .utils import load_pkl, read_json
-from .base import LanguageBase, VisionLanguageBase
-import random
-from typing import List
+import tqdm
+import numpy as np
+import pickle as pkl
 
-class VLFeaturesDataset(VisionLanguageBase):
+from PIL import Image
+from . import utils
+
+from typing import List
+from torch.utils.data import Dataset
+
+from tqdm import tqdm
+
+class FHMBase(Dataset):
     def __init__(
         self,
         annotation_filepath: str,
+        auxiliary_dicts: dict,
+        labels: List[str]
+    ):
+        self.annotations = self._preprocess_annotations(annotation_filepath)
+        self.auxiliary_data = self._load_auxiliary(auxiliary_dicts)
+        self.labels = labels
+
+    def _preprocess_annotations(self, annotation_filepath: str):
+        annotations = []
+
+        # load the default annotations
+        data = utils._load_jsonl(annotation_filepath)
+
+        # translate labels into numeric values
+        for record in tqdm.tqdm(data, desc="Preprocessing labels"):
+            record["img"] = os.path.basename(record["img"])
+
+            annotations.append(record)
+        
+        return annotations
+
+    def _load_auxiliary(self, auxiliary_dicts: dict):
+        data = {}
+        for key, filepath in tqdm.tqdm(auxiliary_dicts.items(), desc="Loading auxiliary info"):
+            with open(filepath, "rb") as f:
+                data[key] = pkl.load(f)
+
+        return data
+
+    def __len__(self):
+        return len(self.annotations)
+
+
+class FasterRCNNDataset(FHMBase):
+    def __init__(
+        self,
+        annotation_filepath: str,
+        auxiliary_dicts: dict,
         labels: List[str],
         feats_dict: dict
     ):
-        super().__init__(annotation_filepath, None, labels)
+        super().__init__(annotation_filepath, auxiliary_dicts, labels)
         self.feats_dict = feats_dict
 
     def __getitem__(self, idx: int):
-        text = self.annotations.loc[idx, 'text']
-        image_id = self.annotations.loc[idx, 'img']
+        record = self.annotations[idx]
+
+        text = record['text']
+        image_id = record['img']
         id, _ = os.path.splitext(image_id)
 
         item = {
@@ -32,80 +76,86 @@ class VLFeaturesDataset(VisionLanguageBase):
         }
 
         for l in self.labels:
-            item[l] = self.annotations.loc[idx, l]
+            item[l] = record[l]
 
         return item
 
-class VLImagesDataset(VisionLanguageBase):
+
+class ImagesDataset(FHMBase):
     def __init__(
         self,
         annotation_filepath: str,
-        image_dir: str,
-        labels: List[str]
+        auxiliary_dicts: dict,
+        labels: List[str],
+        image_dir: str
     ):
-        super().__init__(annotation_filepath, image_dir, labels)
+        super().__init__(annotation_filepath, auxiliary_dicts, labels)
+        self.image_dir = image_dir
 
     def __getitem__(self, idx: int):
-        text = self.annotations.loc[idx, 'text']
-        image_id = self.annotations.loc[idx, 'img']
-        id, _ = os.path.splitext(image_id)
+        record = self.annotations[idx]
 
-        image_path = os.path.join(self.image_dir, image_id)
+        image_filename = record['img']
+        image_id, _ = os.path.splitext(image_filename)
+
+        image_path = os.path.join(self.image_dir, image_filename)
         image = Image.open(image_path)
         image = image.resize((224, 224))
         image = image.convert("RGB") if image.mode != "RGB" else image
 
         item = {
-            'id': id,
+            'id': record['id'],
             'image_id': image_id,
-            'text': text,
+            'text': record['text'],
             'image': np.array(image),
             'image_path': image_path
         }
 
         for l in self.labels:
-            item[l] = self.annotations.loc[idx, l]
+            item[l] = record[l]
 
         return item
 
-class LanguageDataset(LanguageBase):
+
+class TextDataset(FHMBase):
     def __init__(
         self,
         annotation_filepath: str,
         auxiliary_dicts: dict,
+        labels: List[str],
         input_template: str,
         output_template: str,
-        label2word: dict,
-        labels: List[str]
+        label2word: dict
     ):
-        super().__init__(annotation_filepath, auxiliary_dicts,
-                         input_template, output_template, label2word, 
-                         labels)
+        super().__init__(annotation_filepath, auxiliary_dicts, labels)
+        self.input_template = input_template
+        self.output_template = output_template
+        self.label2word = label2word
 
     def __getitem__(self, idx: int):
-        text = self.annotations.loc[idx, 'text']
-        image_id = self.annotations.loc[idx, 'img']
-        id, _ = os.path.splitext(image_id)
+        record = self.annotations[idx]
 
         # Format the input template
-        input_kwargs = {"text": text}
+        input_kwargs = {"text": record['text']}
         for key, data in self.auxiliary_data.items():
             input_kwargs[key] = data[f"{id:05}"]
 
+        image_id, _ = os.path.splitext(record['img'])
+
         item = {
-            'id': id,
+            'id': record["id"],
             'image_id': image_id,
             'text': self.input_template.format(**input_kwargs)
         }
 
         for l in self.labels:
-            label = self.annotations.loc[idx, l]
+            label = record[l]
             item[l] = self.output_template.format(label=self.label2word[label])
 
         return item
 
 class Multimodal_Data():
-    #mem, off, harm
+   
     def __init__(self,opt,tokenizer,dataset,mode='train',few_shot_index=0):
         super(Multimodal_Data,self).__init__()
         self.opt=opt
@@ -114,8 +164,6 @@ class Multimodal_Data():
         if self.opt['FEW_SHOT']:
             self.few_shot_index=str(few_shot_index)
             self.num_shots=self.opt['NUM_SHOTS']
-            print ('Few shot learning setting for Iteration:',self.few_shot_index)
-            print ('Number of shots:',self.num_shots)
         
         self.num_ans=self.opt['NUM_LABELS']
         #maximum length for a single sentence
@@ -125,37 +173,8 @@ class Multimodal_Data():
         self.num_sample=self.opt['NUM_SAMPLE']
         self.add_ent=self.opt['ADD_ENT']
         self.add_dem=self.opt['ADD_DEM']
-        print ('Adding entity information?',self.add_ent)
-        print ('Adding demographic information?',self.add_dem)
-        self.fine_grind=self.opt['FINE_GRIND']
-        print ('Using target information?',self.fine_grind)
-        
-        if opt['FINE_GRIND']:
-            #target information
-            if self.opt['DATASET']=='mem':
-                self.label_mapping_word={0:'nobody',
-                                         1:'race',
-                                         2:'disability',
-                                         3:'nationality',
-                                         4:'sex',
-                                         5:'religion'}
-            elif self.opt['DATASET']=='harm':
-                self.label_mapping_word={0:'nobody',
-                                         1:'society',
-                                         2:'individual',
-                                         3:'community',
-                                         4:'organization'}
-                self.attack_list={'society':0,
-                                  'individual':1,
-                                  'community':2,
-                                  'organization':3}
-                self.attack_file=load_pkl(os.path.join(self.opt['DATA'],
-                                                       'domain_splits','harm_trgt.pkl'))
-            self.template="*<s>**sent_0*.*_It_was_targeting*label_**</s>*"
-        else:
-            self.label_mapping_word={0:self.opt['POS_WORD'],
-                                     1:self.opt['NEG_WORD']}
-            self.template="*<s>**sent_0*.*_It_was*label_**</s>*"
+        self.label_mapping_word={0:self.opt['POS_WORD'], 1:self.opt['NEG_WORD']}
+        self.template="*<s>**sent_0*.*_It_was*label_**</s>*"
             
         self.label_mapping_id={}
         for label in self.label_mapping_word.keys():
@@ -169,10 +188,7 @@ class Multimodal_Data():
                    (label,mapping_word,self.label_mapping_id[label]))
         #implementation for one template now
         
-        
         self.template_list=self.template.split('*')
-        print('Template:', self.template)
-        print('Template list:',self.template_list)
         self.special_token_mapping = {
             '<s>': tokenizer.convert_tokens_to_ids('<s>'),
             '<mask>': tokenizer.mask_token_id, 
@@ -181,27 +197,23 @@ class Multimodal_Data():
         }
         
         if self.opt['DEM_SAMP']:
-            print ('Using demonstration sampling strategy...')
             self.img_rate=self.opt['IMG_RATE']
             self.text_rate=self.opt['TEXT_RATE']
             self.samp_rate=self.opt['SIM_RATE']
-            print ('Image rage for measuring CLIP similarity:',self.img_rate)
-            print ('Text rage for measuring CLIP similarity:',self.text_rate)
-            print ('Sampling from top:',self.samp_rate*100.0,'examples')
+           
             self.clip_clean=self.opt['CLIP_CLEAN']
             clip_path=os.path.join(
                 self.opt['CAPTION_PATH'],
                 dataset,dataset+'_sim_scores.pkl')
-            print ('Clip feature path:',clip_path)
-            self.clip_feature=load_pkl(clip_path)
+            self.clip_feature=utils.load_pkl(clip_path)
         
         self.support_examples=self.load_entries('train')
-        print ('Length of supporting example:',len(self.support_examples))
+       
         self.entries=self.load_entries(mode)
         if self.opt['DEBUG']:
             self.entries=self.entries[:128]
         self.prepare_exp()
-        print ('The length of the dataset for:',mode,'is:',len(self.entries))
+        
 
     def load_entries(self,mode):
         #only in training mode, in few-shot setting the loading will be different
@@ -213,11 +225,11 @@ class Multimodal_Data():
             path=os.path.join(self.opt['DATA'],
                               'domain_splits',
                               self.opt['DATASET']+'_'+mode+'.json')
-        data=read_json(path)
+        data=utils.read_json(path)
         cap_path=os.path.join(self.opt['CAPTION_PATH'],
                               self.opt['DATASET']+'_'+self.opt['PRETRAIN_DATA'],
                               self.opt['IMG_VERSION']+'_captions.pkl')
-        captions=load_pkl(cap_path)
+        captions=utils.load_pkl(cap_path)
         entries=[]
         for k,row in enumerate(data):
             label=row['label']
@@ -235,23 +247,8 @@ class Multimodal_Data():
                 'cap':cap.strip(),
                 'label':label,
                 'img':img
-            }
-            if self.fine_grind:
-                if self.opt['DATASET']=='mem':
-                    if label==0:
-                        #[1,0,0,0,0,0]
-                        entry['attack']=[1]+row['attack']
-                    else:
-                        entry['attack']=[0]+row['attack']
-                elif self.opt['DATASET']=='harm':
-                    if label==0:
-                        #[1,0,0,0,0,0]
-                        entry['attack']=[1,0,0,0,0]
-                    else:
-                        attack=[0,0,0,0,0]
-                        attack_idx=self.attack_list[self.attack_file[img]]+1
-                        attack[attack_idx]=1
-                        entry['attack']=attack
+            }   
+                
             entries.append(entry)
         return entries
     
@@ -339,12 +336,9 @@ class Multimodal_Data():
         assert len(selection) > 0
         return selection
     
-    def process_prompt(self, examples, 
-                       first_sent_limit, other_sent_limit):
-        if self.fine_grind:
-            prompt_arch=' It was targeting '
-        else:
-            prompt_arch=' It was '
+    def process_prompt(self, examples, first_sent_limit, other_sent_limit):
+        
+        prompt_arch=' It was '
         #currently, first and other limit are the same
         input_ids = []
         attention_mask = []
@@ -360,22 +354,8 @@ class Multimodal_Data():
                 temp=prompt_arch+'<mask>'+' . </s>'
             else:
                 length=other_sent_limit
-                if self.fine_grind:
-                    if ent['label']==0:
-                        label_word=self.label_mapping_word[0]
-                    else:
-                        attack_types=[i for i, x in enumerate(ent['attack']) if x==1]
-                        #only for meme
-                        if len(attack_types)==0:
-                            attack_idx=random.randint(1,5)
-                        #randomly pick one
-                        #already padding nobody to the head of the list
-                        else:
-                            order=np.random.permutation(len(attack_types))
-                            attack_idx=attack_types[order[0]]
-                        label_word=self.label_mapping_word[attack_idx]
-                else:
-                    label_word=self.label_mapping_word[ent['label']]
+                
+                label_word=self.label_mapping_word[ent['label']]
                 temp=prompt_arch+label_word+' . </s>'
             new_tokens+=self.enc(' '+ent['cap'])
             #truncate the sentence if too long
@@ -442,9 +422,7 @@ class Multimodal_Data():
             'mask_pos':mask_pos,
             'label':label
         }
-        if self.fine_grind:
-            batch['attack']=torch.Tensor(entry['attack'])
-        #print (batch)
+       
         return batch
         
     def __len__(self):
