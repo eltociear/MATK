@@ -21,7 +21,6 @@ import os
 import pickle as pkl
 import numpy as np
 import torch
-from datamodules.datasets.fhm import Multimodal_Data
 import lightning.pytorch as pl
 from tqdm import tqdm
 from transformers import RobertaTokenizer
@@ -310,27 +309,45 @@ class MultimodalDataModule(pl.LightningDataModule):
     DataModule used for semantic segmentation in geometric generalization project
     """
 
-    def __init__(self, model_class_or_path: str, batch_size: int, shuffle_train: bool, opt):
+    def __init__(self, 
+                model_class_or_path: str, 
+                batch_size: int, 
+                shuffle_train: bool, 
+                opt, 
+                annotation_filepaths,
+                cap_path,
+                prompt_arch,
+                dataset_class
+                ):
         super().__init__()
 
         self.batch_size = batch_size
         self.shuffle_train = shuffle_train
         self.opt = opt
+        self.annotation_filepaths = annotation_filepaths
+        self.cap_path = cap_path
+        self.prompt_arch = prompt_arch
 
         self.tokenizer = RobertaTokenizer.from_pretrained(model_class_or_path)
 
+        # TEMP HACK
+        package_name = ".".join(dataset_class.split(".")[:-1])
+        class_name = dataset_class.split(".")[-1]
+        m = importlib.import_module(package_name)
+        self.dataset_cls = getattr(m, class_name)
+
     def setup(self, stage: Optional[str] = None):
         if stage == "fit" or stage is None:
-            self.train = Multimodal_Data(self.opt, self.tokenizer, self.opt['DATASET'], 'train', self.opt['SEED']-1111)
+            self.train = self.dataset_cls(self.opt, self.tokenizer, self.opt['DATASET'], self.annotation_filepaths["train"], self.cap_path, self.prompt_arch, 'train', self.opt['SEED']-1111)
 
-            self.validate = Multimodal_Data(self.opt, self.tokenizer, self.opt['DATASET'],'test')
+            self.validate = self.dataset_cls(self.opt, self.tokenizer, self.opt['DATASET'], self.annotation_filepaths["validate"], self.cap_path, self.prompt_arch, 'test')
 
         # Assign test dataset for use in dataloader(s)
         if stage == "test" or stage is None:
-            self.test = Multimodal_Data(self.opt, self.tokenizer, self.opt['DATASET'], 'train', self.opt['SEED']-1111, 'test')
+            self.test = self.dataset_cls(self.opt, self.tokenizer, self.opt['DATASET'], self.annotation_filepaths["test"], self.cap_path, self.prompt_arch, 'test', self.opt['SEED']-1111)
 
         if stage == "predict" or stage is None:
-            self.predict = Multimodal_Data(self.opt, self.tokenizer, self.opt['DATASET'], 'train', self.opt['SEED']-1111, 'test')
+            self.predict = self.dataset_cls(self.opt, self.tokenizer, self.opt['DATASET'], self.annotation_filepaths["predict"], self.cap_path, self.prompt_arch, 'test', self.opt['SEED']-1111)
 
 
     def train_dataloader(self):

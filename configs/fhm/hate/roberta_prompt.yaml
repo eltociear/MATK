@@ -48,7 +48,7 @@ data:
     model_class_or_path: roberta-large
     shuffle_train: True
     batch_size: 4
-    dataset_class: datamodules.datasets.fhm.MultimodalDataset
+    dataset_class: datamodules.datasets.fhm_finegrained.MultimodalDataset
     annotation_filepaths: {
       train: /mnt/sdb/aditi/hconvert/prompthate/data/domain_splits/mem_train.json,
       validate: /mnt/sdb/aditi/hconvert/prompthate/data/domain_splits/mem_test.json,
@@ -56,11 +56,11 @@ data:
       predict: /mnt/sdb/aditi/hconvert/prompthate/data/domain_splits/mem_test.json,
     }
     cap_path: /mnt/sdb/aditi//hconvert/prompthate/caption/mem_conceptual/clean_captions.pkl
-    prompt_arch: "It was "
+    prompt_arch: "It was targeting "
     opt: 
       DATASET : mem
       FEW_SHOT : False
-      FINE_GRIND : False
+      FINE_GRIND : True
       NUM_SHOTS : 16
       DATA : /mnt/sdb/aditi/hconvert/prompthate/data ## attention
       CAPTION_PATH : /mnt/sdb/aditi/hconvert/prompthate/caption ## attention
@@ -75,6 +75,8 @@ data:
       CLIP_CLEAN : False
       LENGTH : 64
       TOTAL_LENGTH : 256
+      PRETRAIN_DATA : conceptual
+      IMG_VERSION : clean
       ADD_ENT : True
       ADD_DEM : True
       DEBUG : False

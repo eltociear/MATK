@@ -9,7 +9,7 @@ trainer:
   callbacks: 
     - class_path: lightning.pytorch.callbacks.ModelCheckpoint
       init_args:
-        dirpath: checkpoints/roberta_prompt/harmeme
+        dirpath: checkpoints/roberta_prompt/fhm/normal
         monitor: val_auroc
         mode: max
         save_top_k: 1
@@ -37,16 +37,26 @@ model:
       LR_RATE : 1e-05
       EPS : 1e-08
       FIX_LAYERS : 0
+
     label_list: 
       - 205
       - 1099
 
 data:
-  class_path: datamodules.datasets.prompthate_data.MultimodalDataModule
+  class_path: datamodules.modules.MultimodalDataModule
   init_args:
     model_class_or_path: roberta-large
     shuffle_train: True
     batch_size: 4
+    dataset_class: datamodules.datasets.harmemes.MultimodalDataset
+    annotation_filepaths: {
+      train: /mnt/sdb/aditi/hconvert/prompthate/data/domain_splits/harm_train.json,
+      validate: /mnt/sdb/aditi/hconvert/prompthate/data/domain_splits/harm_test.json,
+      test: /mnt/sdb/aditi/hconvert/prompthate/data/domain_splits/harm_test.json,
+      predict: /mnt/sdb/aditi/hconvert/prompthate/data/domain_splits/harm_test.json,
+    }
+    cap_path: /mnt/sdb/aditi//hconvert/prompthate/caption/harm_conceptual/clean_captions.pkl
+    prompt_arch: "It was "
     opt: 
       DATASET : harm
       FEW_SHOT : False
@@ -62,11 +72,8 @@ data:
       SIM_RATE : 0.5
       IMG_RATE : 0.5
       TEXT_RATE : 0.5
-      CLIP_CLEAN : False
       LENGTH : 64
       TOTAL_LENGTH : 256
-      PRETRAIN_DATA : conceptual
-      IMG_VERSION : clean
       ADD_ENT : True
       ADD_DEM : True
       DEBUG : False
