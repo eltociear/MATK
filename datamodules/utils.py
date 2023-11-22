@@ -17,3 +17,10 @@ class ConcatDataset(torch.utils.data.Dataset):
 
     def __len__(self):
         return min(len(d) for d in self.datasets)
+    
+    def get_ids(self):
+        ids = []
+        for idx in range(min(len(d) for d in self.datasets)):
+            ids += [d[idx]['id'] for d in self.datasets]
+
+        return ids

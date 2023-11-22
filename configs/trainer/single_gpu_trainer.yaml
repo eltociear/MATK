@@ -15,7 +15,8 @@ callbacks:
     save_top_k: ${save_top_ks}
     save_weights_only: true
     every_n_epochs: 1
-    save_last: True
+    save_last: False
+    filename: "best"
   - _target_: lightning.pytorch.callbacks.EarlyStopping
     monitor: ${monitor_metric}
     patience: 5

@@ -13,7 +13,8 @@ class FlavaClassificationModel(BaseLightningModule):
         self,
         model_class_or_path: str,
         dropout: float,
-        optimizers: list
+        optimizers: list,
+        mlps_config: list
     ):
         super().__init__()
         self.save_hyperparameters()
@@ -22,12 +23,6 @@ class FlavaClassificationModel(BaseLightningModule):
         self.dropout = dropout
         self.optimizers = optimizers
 
-    def setup_tasks(self, metrics_cfg, cls_cfg):
-        # set up the metrics for evaluation
-        setup_metrics(self, cls_cfg, metrics_cfg, "train")
-        setup_metrics(self, cls_cfg, metrics_cfg, "validate")
-        setup_metrics(self, cls_cfg, metrics_cfg, "test")
-
         # set up the various classification heads
         self.mlps = nn.ModuleList([
             SimpleClassifier(
@@ -35,8 +30,14 @@ class FlavaClassificationModel(BaseLightningModule):
                 num_classes,
                 self.dropout
             )
-            for num_classes in cls_cfg.values()
+            for num_classes in mlps_config
         ])
+
+    def setup_tasks(self, metrics_cfg, cls_cfg):
+        # set up the metrics for evaluation
+        setup_metrics(self, cls_cfg, metrics_cfg, "train")
+        setup_metrics(self, cls_cfg, metrics_cfg, "validate")
+        setup_metrics(self, cls_cfg, metrics_cfg, "test")
 
         # important variables used in the BaseLightningModule
         self.classes = list(cls_cfg.keys())
@@ -93,7 +94,7 @@ class FlavaClassificationModel(BaseLightningModule):
         self.forward("test", batch)
         return
 
-    def predict_step(self, batch):
+    def predict_step(self, batch, batch_idx):
         model_outputs = self.model(
             input_ids=batch["input_ids"],
             attention_mask=batch["attention_mask"],
@@ -101,14 +102,12 @@ class FlavaClassificationModel(BaseLightningModule):
         )
 
         results = {
-            "id": [],
-            "classification_task": [],
+            "task": [],
             "logits": [],
         }
         for idx, cls_name in enumerate(self.classes):
             logits = self.mlps[idx](model_outputs.multimodal_embeddings[:, 0])
-            results["id"] = batch["id"].detach().cpu().tolist()
-            results["classification_task"] = [cls_name for i in range(batch["id"].shape[0])]
+            results["task"] = [cls_name] * logits.shape[0]
             results["logits"] = logits.detach().cpu().tolist()
 
         return results
